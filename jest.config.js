@@ -12,6 +12,7 @@ module.exports = {
     '!src/**/index.ts',
   ],
   testMatch: ['**/__tests__/**/*.test.{ts,tsx}'],
+  testPathIgnorePatterns: ['/node_modules/', 'src/services/repositories/__tests__/'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },

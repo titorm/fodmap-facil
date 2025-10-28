@@ -150,6 +150,551 @@ fodmap-facil/
 - **Repository Pattern**: Data access abstraction in infrastructure layer
 - **Dependency Injection**: Loose coupling between layers
 
+## 💾 Data Layer Architecture
+
+### Offline-First Strategy
+
+FODMAP Fácil implements an **offline-first architecture** where SQLite serves as the primary data source. This ensures the app works seamlessly without internet connectivity, providing a reliable user experience regardless of network conditions.
+
+**Key Principles:**
+
+- **SQLite as Source of Truth**: All data operations (read/write) go to the local SQLite database first
+- **Asynchronous Sync**: Changes sync to Supabase in the background when connectivity is available
+- **Optimistic Updates**: UI updates immediately while sync happens asynchronously
+- **Conflict Resolution**: Last-write-wins strategy using timestamps for conflict resolution
+
+### Architecture Layers
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   React Components                       │
+│                  (UI Layer)                              │
+└────────────────────┬────────────────────────────────────┘
+                     │ Custom Hooks (useProtocolRuns, etc.)
+                     ↓
+┌─────────────────────────────────────────────────────────┐
+│              TanStack Query Layer                        │
+│  - Query Client (caching, refetching, invalidation)     │
+│  - Query Keys (consistent naming convention)            │
+│  - Optimistic Updates                                   │
+└────────────────────┬────────────────────────────────────┘
+                     │ Repository Methods
+                     ↓
+┌─────────────────────────────────────────────────────────┐
+│              Repository Layer                            │
+│  - UserProfileRepository                                │
+│  - ProtocolRunRepository                                │
+│  - TestStepRepository                                   │
+│  - SymptomEntryRepository                               │
+│  - FoodItemRepository                                   │
+└────────────────────┬────────────────────────────────────┘
+                     │ Drizzle ORM
+                     ↓
+┌─────────────────────────────────────────────────────────┐
+│         SQLite Database (Primary Storage)               │
+│  - Offline-first local storage                          │
+│  - Type-safe schema with Drizzle ORM                    │
+└────────────────────┬────────────────────────────────────┘
+                     │ Sync Service (Background)
+                     ↓
+┌─────────────────────────────────────────────────────────┐
+│         Supabase (Remote Backup & Sync)                 │
+│  - Cross-device synchronization                         │
+│  - Cloud backup                                         │
+│  - Authentication                                       │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Supabase Sync Strategy
+
+**When Sync Occurs:**
+
+1. **On App Launch**: Checks for connectivity and syncs pending changes
+2. **After Mutations**: Queues local changes for background sync
+3. **On Network Reconnection**: Automatically syncs when connectivity is restored
+4. **Periodic Background Sync**: Syncs at regular intervals when app is active
+
+**How Sync Works:**
+
+1. **Local Write**: User action writes to SQLite immediately
+2. **Queue for Sync**: Change is marked for synchronization
+3. **Background Upload**: Sync service uploads changes to Supabase when online
+4. **Conflict Detection**: Compares timestamps to detect conflicts
+5. **Conflict Resolution**: Applies last-write-wins strategy
+6. **Bidirectional Sync**: Downloads remote changes not present locally
+
+**Sync Flow Diagram:**
+
+```
+User Action → SQLite Write → UI Update (Immediate)
+                    ↓
+              Sync Queue
+                    ↓
+         [Network Available?]
+                    ↓
+              Yes → Upload to Supabase
+                    ↓
+              Conflict Check
+                    ↓
+         [Timestamp Comparison]
+                    ↓
+         Local Newer → Keep Local
+         Remote Newer → Update Local
+         Same → No Action
+```
+
+### Sync Conflict Scenarios
+
+**Scenario 1: Same Record Modified on Multiple Devices**
+
+- **Situation**: User edits a protocol run on Device A while offline, then edits the same record on Device B
+- **Resolution**: Last-write-wins based on `updatedAt` timestamp
+- **Example**:
+  ```
+  Device A: updatedAt = 2024-01-15 10:30:00
+  Device B: updatedAt = 2024-01-15 10:35:00
+  Result: Device B's changes win, Device A's changes are overwritten
+  ```
+
+**Scenario 2: Deletion Conflicts**
+
+- **Situation**: User deletes a record on Device A while Device B modifies it offline
+- **Resolution**: Deletion takes precedence (tombstone record)
+- **Example**: If Device A deletes a test step and Device B updates it, the deletion wins
+
+**Scenario 3: Network Interruption During Sync**
+
+- **Situation**: Sync starts but network drops mid-operation
+- **Resolution**: Transaction rollback, retry with exponential backoff
+- **Example**: Partial upload is rolled back, queued for retry after 1s, 2s, 4s intervals
+
+**Scenario 4: Concurrent Creation**
+
+- **Situation**: User creates new records on multiple devices with same local ID
+- **Resolution**: Server-generated UUIDs prevent ID conflicts
+- **Example**: Both records are created with unique IDs, no conflict occurs
+
+### Conflict Resolution Strategy
+
+**Last-Write-Wins with Timestamps:**
+
+```typescript
+// Conflict resolution logic
+function resolveConflict(localRecord, remoteRecord) {
+  if (localRecord.updatedAt > remoteRecord.updatedAt) {
+    // Local is newer, upload to server
+    return { action: 'upload', record: localRecord };
+  } else if (remoteRecord.updatedAt > localRecord.updatedAt) {
+    // Remote is newer, update local
+    return { action: 'download', record: remoteRecord };
+  } else {
+    // Same timestamp, no conflict
+    return { action: 'none', record: localRecord };
+  }
+}
+```
+
+**Conflict Prevention:**
+
+- Unique IDs generated client-side (UUID v4)
+- Timestamps in UTC to avoid timezone issues
+- Atomic operations to prevent partial writes
+- Optimistic locking for critical operations
+
+### Data Operations Examples
+
+#### Create Operation
+
+```typescript
+import { useCreateProtocolRun } from '@/shared/hooks/useProtocolRuns';
+
+function CreateProtocolButton() {
+  const createMutation = useCreateProtocolRun();
+
+  const handleCreate = async () => {
+    try {
+      // Writes to SQLite immediately, syncs to Supabase in background
+      await createMutation.mutateAsync({
+        userId: 'user-123',
+        status: 'planned',
+        startDate: new Date(),
+        notes: 'Starting fructose reintroduction',
+      });
+
+      // UI updates immediately with optimistic data
+      console.log('Protocol created successfully');
+    } catch (error) {
+      console.error('Failed to create protocol:', error);
+    }
+  };
+
+  return (
+    <Button
+      onPress={handleCreate}
+      loading={createMutation.isPending}
+    >
+      Create Protocol
+    </Button>
+  );
+}
+```
+
+#### Read Operation
+
+```typescript
+import { useProtocolRuns } from '@/shared/hooks/useProtocolRuns';
+
+function ProtocolList({ userId }) {
+  // Reads from SQLite, uses TanStack Query cache
+  const { data: protocolRuns, isLoading, error, refetch } = useProtocolRuns(userId);
+
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage error={error} onRetry={refetch} />;
+
+  return (
+    <FlatList
+      data={protocolRuns}
+      renderItem={({ item }) => <ProtocolCard protocol={item} />}
+      keyExtractor={(item) => item.id}
+    />
+  );
+}
+```
+
+#### Update Operation
+
+```typescript
+import { useUpdateProtocolRun } from '@/shared/hooks/useProtocolRuns';
+
+function ProtocolEditor({ protocolId }) {
+  const updateMutation = useUpdateProtocolRun();
+
+  const handleUpdate = async (updates) => {
+    try {
+      // Optimistic update: UI updates immediately
+      await updateMutation.mutateAsync({
+        id: protocolId,
+        data: {
+          status: 'active',
+          notes: 'Updated notes',
+          updatedAt: new Date(), // Timestamp for conflict resolution
+        },
+      });
+
+      console.log('Protocol updated successfully');
+    } catch (error) {
+      // Rollback happens automatically on error
+      console.error('Failed to update protocol:', error);
+    }
+  };
+
+  return (
+    <Form onSubmit={handleUpdate}>
+      {/* Form fields */}
+    </Form>
+  );
+}
+```
+
+#### Delete Operation
+
+```typescript
+import { useDeleteProtocolRun } from '@/shared/hooks/useProtocolRuns';
+
+function DeleteProtocolButton({ protocolId }) {
+  const deleteMutation = useDeleteProtocolRun();
+
+  const handleDelete = async () => {
+    try {
+      // Soft delete in SQLite, syncs to Supabase
+      await deleteMutation.mutateAsync(protocolId);
+
+      // Cache automatically invalidated
+      console.log('Protocol deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete protocol:', error);
+    }
+  };
+
+  return (
+    <Button
+      onPress={handleDelete}
+      variant="destructive"
+      loading={deleteMutation.isPending}
+    >
+      Delete Protocol
+    </Button>
+  );
+}
+```
+
+#### Batch Operations
+
+```typescript
+import { useCreateSymptomEntries } from '@/shared/hooks/useSymptomEntries';
+
+function BulkSymptomLogger({ testStepId }) {
+  const createMutation = useCreateSymptomEntries();
+
+  const handleBulkCreate = async (symptoms) => {
+    try {
+      // Batch insert for better performance
+      await createMutation.mutateAsync({
+        testStepId,
+        entries: [
+          { symptomType: 'bloating', severity: 7, timestamp: new Date() },
+          { symptomType: 'pain', severity: 5, timestamp: new Date() },
+          { symptomType: 'gas', severity: 6, timestamp: new Date() },
+        ],
+      });
+
+      console.log('Symptoms logged successfully');
+    } catch (error) {
+      console.error('Failed to log symptoms:', error);
+    }
+  };
+
+  return <SymptomForm onSubmit={handleBulkCreate} />;
+}
+```
+
+### Query Key Naming Conventions
+
+TanStack Query uses a consistent query key factory pattern for cache management:
+
+```typescript
+// Query key structure: [entity, ...identifiers]
+export const queryKeys = {
+  // User profiles
+  userProfiles: {
+    all: ['userProfiles'] as const,
+    byId: (id: string) => ['userProfiles', id] as const,
+    byEmail: (email: string) => ['userProfiles', 'email', email] as const,
+  },
+
+  // Protocol runs
+  protocolRuns: {
+    all: ['protocolRuns'] as const,
+    byId: (id: string) => ['protocolRuns', id] as const,
+    byUserId: (userId: string) => ['protocolRuns', 'user', userId] as const,
+    active: (userId: string) => ['protocolRuns', 'active', userId] as const,
+  },
+
+  // Test steps
+  testSteps: {
+    all: ['testSteps'] as const,
+    byId: (id: string) => ['testSteps', id] as const,
+    byProtocolRunId: (protocolRunId: string) =>
+      ['testSteps', 'protocolRun', protocolRunId] as const,
+    byStatus: (status: string) => ['testSteps', 'status', status] as const,
+  },
+
+  // Symptom entries
+  symptomEntries: {
+    all: ['symptomEntries'] as const,
+    byId: (id: string) => ['symptomEntries', id] as const,
+    byTestStepId: (testStepId: string) => ['symptomEntries', 'testStep', testStepId] as const,
+    byDateRange: (testStepId: string, start: Date, end: Date) =>
+      [
+        'symptomEntries',
+        'testStep',
+        testStepId,
+        'range',
+        start.toISOString(),
+        end.toISOString(),
+      ] as const,
+  },
+
+  // Food items
+  foodItems: {
+    all: ['foodItems'] as const,
+    byId: (id: string) => ['foodItems', id] as const,
+    byFodmapGroup: (group: string) => ['foodItems', 'group', group] as const,
+  },
+};
+```
+
+**Usage in Hooks:**
+
+```typescript
+// Query hook
+export function useProtocolRuns(userId: string) {
+  return useQuery({
+    queryKey: queryKeys.protocolRuns.byUserId(userId),
+    queryFn: () => protocolRunRepository.findByUserId(userId),
+    enabled: !!userId,
+  });
+}
+
+// Mutation hook with cache invalidation
+export function useCreateProtocolRun() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data) => protocolRunRepository.create(data),
+    onSuccess: (newProtocolRun) => {
+      // Invalidate related queries
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.protocolRuns.byUserId(newProtocolRun.userId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.protocolRuns.active(newProtocolRun.userId),
+      });
+    },
+  });
+}
+```
+
+**Key Naming Best Practices:**
+
+1. **Hierarchical Structure**: Start with entity name, add identifiers progressively
+2. **Const Assertions**: Use `as const` for type safety and autocomplete
+3. **Descriptive Names**: Use clear, semantic names (e.g., `byUserId` not `user`)
+4. **Consistent Patterns**: Follow same structure across all entities
+5. **Granular Invalidation**: Structure keys to allow targeted cache invalidation
+
+**Cache Invalidation Examples:**
+
+```typescript
+// Invalidate all protocol runs
+queryClient.invalidateQueries({ queryKey: queryKeys.protocolRuns.all });
+
+// Invalidate specific user's protocol runs
+queryClient.invalidateQueries({
+  queryKey: queryKeys.protocolRuns.byUserId('user-123'),
+});
+
+// Invalidate active protocol run only
+queryClient.invalidateQueries({
+  queryKey: queryKeys.protocolRuns.active('user-123'),
+});
+
+// Invalidate all queries starting with 'protocolRuns'
+queryClient.invalidateQueries({
+  queryKey: ['protocolRuns'],
+  exact: false,
+});
+```
+
+### TanStack Query Configuration
+
+The Query Client is configured with sensible defaults for offline-first behavior:
+
+```typescript
+// src/lib/queryClient.ts
+import { QueryClient } from '@tanstack/react-query';
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes - data considered fresh
+      gcTime: 10 * 60 * 1000, // 10 minutes - cache garbage collection
+      retry: 3, // Retry failed queries 3 times
+      retryDelay: (
+        attemptIndex // Exponential backoff
+      ) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      refetchOnWindowFocus: true, // Refetch when app comes to foreground
+      refetchOnReconnect: true, // Refetch when network reconnects
+      refetchOnMount: true, // Refetch when component mounts
+    },
+    mutations: {
+      retry: 1, // Retry mutations once
+      retryDelay: 1000, // Wait 1 second before retry
+    },
+  },
+});
+```
+
+**Configuration Rationale:**
+
+- **staleTime (5 min)**: Balances data freshness with performance
+- **gcTime (10 min)**: Keeps inactive data cached for quick navigation
+- **retry (3)**: Handles transient network failures
+- **exponential backoff**: Prevents server overload during outages
+- **refetch flags**: Ensures data freshness when app regains focus
+
+### Repository Pattern
+
+All data access goes through repository classes that encapsulate database operations:
+
+```typescript
+// Example: ProtocolRunRepository
+export class ProtocolRunRepository extends BaseRepository<ProtocolRun> {
+  async create(data: CreateProtocolRunInput): Promise<ProtocolRun> {
+    const newProtocolRun = {
+      ...data,
+      id: this.generateId(),
+      createdAt: this.now(),
+      updatedAt: this.now(),
+    };
+
+    await this.db.insert(protocolRuns).values(newProtocolRun);
+    return newProtocolRun as ProtocolRun;
+  }
+
+  async findByUserId(userId: string): Promise<ProtocolRun[]> {
+    return await this.db
+      .select()
+      .from(protocolRuns)
+      .where(eq(protocolRuns.userId, userId))
+      .orderBy(desc(protocolRuns.createdAt));
+  }
+
+  async update(id: string, data: UpdateProtocolRunInput): Promise<ProtocolRun> {
+    const updates = {
+      ...data,
+      updatedAt: this.now(), // Critical for conflict resolution
+    };
+
+    await this.db.update(protocolRuns).set(updates).where(eq(protocolRuns.id, id));
+
+    return await this.findById(id);
+  }
+}
+```
+
+### Performance Optimizations
+
+**Database Indexes:**
+
+```sql
+-- Frequently queried columns
+CREATE INDEX idx_user_profiles_email ON user_profiles(email);
+CREATE INDEX idx_protocol_runs_user_id ON protocol_runs(user_id);
+CREATE INDEX idx_test_steps_protocol_run_id ON test_steps(protocol_run_id);
+CREATE INDEX idx_symptom_entries_test_step_id ON symptom_entries(test_step_id);
+
+-- Composite index for date range queries
+CREATE INDEX idx_symptom_entries_test_step_timestamp
+  ON symptom_entries(test_step_id, timestamp);
+```
+
+**Query Optimization:**
+
+- Use indexes for WHERE clauses
+- Limit result sets with pagination
+- Select only needed columns
+- Use batch operations for multiple inserts
+
+**Cache Optimization:**
+
+- Prefetch related data
+- Implement optimistic updates
+- Use stale-while-revalidate pattern
+- Invalidate cache strategically
+
+### Future Enhancements
+
+**Planned Improvements:**
+
+1. **Incremental Sync**: Only sync changed records, not full datasets
+2. **Conflict UI**: Show users when conflicts occur and let them choose resolution
+3. **Offline Queue**: Visual indicator of pending sync operations
+4. **Selective Sync**: Allow users to choose what data syncs to cloud
+5. **Compression**: Compress data before upload to reduce bandwidth
+6. **Delta Sync**: Track and sync only field-level changes
+7. **Multi-Device Notifications**: Notify other devices when data changes
+
 ## 🚀 Stack Tecnológica
 
 ### Core
