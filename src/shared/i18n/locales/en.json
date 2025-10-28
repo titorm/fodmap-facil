@@ -1,0 +1,57 @@
+{
+    "common": {
+        "appName": "FODMAP Reintroduction",
+        "loading": "Loading...",
+        "error": "Error",
+        "retry": "Retry",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "back": "Back",
+        "next": "Next",
+        "done": "Done"
+    },
+    "auth": {
+        "signIn": "Sign In",
+        "signUp": "Sign Up",
+        "signOut": "Sign Out",
+        "email": "Email",
+        "password": "Password",
+        "forgotPassword": "Forgot Password?",
+        "noAccount": "Don't have an account?",
+        "hasAccount": "Already have an account?",
+        "emailPlaceholder": "your@email.com",
+        "passwordPlaceholder": "Enter your password"
+    },
+    "reintroduction": {
+        "title": "FODMAP Reintroduction",
+        "startTest": "Start Test",
+        "currentPhase": "Current Phase",
+        "testHistory": "Test History",
+        "symptoms": "Symptoms",
+        "noSymptoms": "No symptoms",
+        "mildSymptoms": "Mild symptoms",
+        "moderateSymptoms": "Moderate symptoms",
+        "severeSymptoms": "Severe symptoms",
+        "phases": {
+            "elimination": "Elimination Phase",
+            "reintroduction": "Reintroduction Phase",
+            "personalization": "Personalization Phase"
+        },
+        "foodGroups": {
+            "fructose": "Fructose",
+            "lactose": "Lactose",
+            "fructans": "Fructans",
+            "galactans": "Galactans",
+            "polyols": "Polyols"
+        }
+    },
+    "profile": {
+        "title": "Profile",
+        "settings": "Settings",
+        "language": "Language",
+        "notifications": "Notifications",
+        "about": "About"
+    }
+}
