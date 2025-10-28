@@ -1,89 +1,93 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, FlatList } from "react-native";
-import { useTranslation } from "react-i18next";
-import { Button, Card } from "../../../shared/components/atoms";
-import { colors, spacing, typography } from "../../../shared/theme";
-import { FODMAPGroup } from "../../../core/domain/entities/ReintroductionTest";
+import React from 'react';
+import { View, Text, FlatList, ViewStyle, TextStyle } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Card } from '../../../shared/components/atoms';
+import { useTheme } from '../../../shared/theme';
+import { FODMAPGroup } from '../../../core/domain/entities/ReintroductionTest';
 
 export const ReintroductionHomeScreen: React.FC = () => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const { colors, spacing, typography } = theme;
 
   const fodmapGroups = [
-    { id: FODMAPGroup.FRUCTOSE, name: t("reintroduction.foodGroups.fructose") },
-    { id: FODMAPGroup.LACTOSE, name: t("reintroduction.foodGroups.lactose") },
-    { id: FODMAPGroup.FRUCTANS, name: t("reintroduction.foodGroups.fructans") },
-    {
-      id: FODMAPGroup.GALACTANS,
-      name: t("reintroduction.foodGroups.galactans"),
-    },
-    { id: FODMAPGroup.POLYOLS, name: t("reintroduction.foodGroups.polyols") },
+    { id: FODMAPGroup.FRUCTOSE, name: t('reintroduction.foodGroups.fructose') },
+    { id: FODMAPGroup.LACTOSE, name: t('reintroduction.foodGroups.lactose') },
+    { id: FODMAPGroup.FRUCTANS, name: t('reintroduction.foodGroups.fructans') },
+    { id: FODMAPGroup.GALACTANS, name: t('reintroduction.foodGroups.galactans') },
+    { id: FODMAPGroup.POLYOLS, name: t('reintroduction.foodGroups.polyols') },
   ];
+
+  const containerStyle: ViewStyle = {
+    flex: 1,
+    backgroundColor: colors.backgroundSecondary,
+  };
+
+  const headerStyle: ViewStyle = {
+    padding: spacing.lg,
+    backgroundColor: colors.surface,
+  };
+
+  const titleStyle: TextStyle = {
+    fontSize: typography.fontSize.xxl,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  };
+
+  const subtitleStyle: TextStyle = {
+    fontSize: typography.fontSize.md,
+    color: colors.textSecondary,
+  };
+
+  const listStyle: ViewStyle = {
+    padding: spacing.lg,
+  };
+
+  const cardStyle: ViewStyle = {
+    marginBottom: spacing.md,
+  };
+
+  const cardTitleStyle: TextStyle = {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  };
+
+  const cardSubtitleStyle: TextStyle = {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+  };
 
   const renderFodmapCard = ({ item }: { item: (typeof fodmapGroups)[0] }) => (
     <Card
-      style={styles.card}
-      onPress={() => console.log("Navigate to", item.id)}
+      style={cardStyle}
+      onPress={() => console.log('Navigate to', item.id)}
       accessibilityLabel={`Test ${item.name}`}
       accessibilityHint="Tap to start reintroduction test"
     >
-      <Text style={styles.cardTitle}>{item.name}</Text>
-      <Text style={styles.cardSubtitle}>Not started</Text>
+      <Text style={cardTitleStyle}>{item.name}</Text>
+      <Text style={cardSubtitleStyle}>Not started</Text>
     </Card>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title} accessibilityRole="header">
-          {t("reintroduction.title")}
+    <View style={containerStyle}>
+      <View style={headerStyle}>
+        <Text style={titleStyle} accessibilityRole="header">
+          {t('reintroduction.title')}
         </Text>
-        <Text style={styles.subtitle}>{t("reintroduction.currentPhase")}</Text>
+        <Text style={subtitleStyle}>{t('reintroduction.currentPhase')}</Text>
       </View>
 
       <FlatList
         data={fodmapGroups}
         renderItem={renderFodmapCard}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={listStyle}
         showsVerticalScrollIndicator={false}
       />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral50,
-  },
-  header: {
-    padding: spacing.lg,
-    backgroundColor: colors.neutral0,
-  },
-  title: {
-    fontSize: typography.fontSize.xxl,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral900,
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    fontSize: typography.fontSize.md,
-    color: colors.neutral600,
-  },
-  list: {
-    padding: spacing.lg,
-  },
-  card: {
-    marginBottom: spacing.md,
-  },
-  cardTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral900,
-    marginBottom: spacing.xs,
-  },
-  cardSubtitle: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral600,
-  },
-});

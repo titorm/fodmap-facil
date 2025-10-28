@@ -1,57 +1,75 @@
 {
-    "common": {
-        "appName": "Reintrodução FODMAP",
-        "loading": "Carregando...",
-        "error": "Erro",
-        "retry": "Tentar novamente",
-        "cancel": "Cancelar",
-        "save": "Salvar",
-        "delete": "Excluir",
-        "edit": "Editar",
-        "back": "Voltar",
-        "next": "Próximo",
-        "done": "Concluído"
-    },
-    "auth": {
-        "signIn": "Entrar",
-        "signUp": "Cadastrar",
-        "signOut": "Sair",
-        "email": "E-mail",
-        "password": "Senha",
-        "forgotPassword": "Esqueceu a senha?",
-        "noAccount": "Não tem uma conta?",
-        "hasAccount": "Já tem uma conta?",
-        "emailPlaceholder": "seu@email.com",
-        "passwordPlaceholder": "Digite sua senha"
-    },
-    "reintroduction": {
-        "title": "Reintrodução FODMAP",
-        "startTest": "Iniciar Teste",
-        "currentPhase": "Fase Atual",
-        "testHistory": "Histórico de Testes",
-        "symptoms": "Sintomas",
-        "noSymptoms": "Sem sintomas",
-        "mildSymptoms": "Sintomas leves",
-        "moderateSymptoms": "Sintomas moderados",
-        "severeSymptoms": "Sintomas graves",
-        "phases": {
-            "elimination": "Fase de Eliminação",
-            "reintroduction": "Fase de Reintrodução",
-            "personalization": "Fase de Personalização"
-        },
-        "foodGroups": {
-            "fructose": "Frutose",
-            "lactose": "Lactose",
-            "fructans": "Frutanos",
-            "galactans": "Galactanos",
-            "polyols": "Polióis"
-        }
-    },
-    "profile": {
-        "title": "Perfil",
-        "settings": "Configurações",
-        "language": "Idioma",
-        "notifications": "Notificações",
-        "about": "Sobre"
+  "common": {
+    "appName": "Reintrodução FODMAP",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "retry": "Tentar novamente",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "done": "Concluído"
+  },
+  "onboarding": {
+    "welcome": "Bem-vindo ao FODMAP Fácil",
+    "getStarted": "Começar",
+    "features": {
+      "title": "Recursos",
+      "tracking": "Acompanhe sua jornada FODMAP",
+      "diary": "Registre suas refeições e sintomas",
+      "reports": "Visualize relatórios detalhados",
+      "personalized": "Plano personalizado para você"
     }
+  },
+  "tabs": {
+    "home": "Início",
+    "journey": "Jornada",
+    "diary": "Diário",
+    "reports": "Relatórios",
+    "profile": "Perfil"
+  },
+  "auth": {
+    "signIn": "Entrar",
+    "signUp": "Cadastrar",
+    "signOut": "Sair",
+    "email": "E-mail",
+    "password": "Senha",
+    "forgotPassword": "Esqueceu a senha?",
+    "noAccount": "Não tem uma conta?",
+    "hasAccount": "Já tem uma conta?",
+    "emailPlaceholder": "seu@email.com",
+    "passwordPlaceholder": "Digite sua senha"
+  },
+  "reintroduction": {
+    "title": "Reintrodução FODMAP",
+    "startTest": "Iniciar Teste",
+    "currentPhase": "Fase Atual",
+    "testHistory": "Histórico de Testes",
+    "symptoms": "Sintomas",
+    "noSymptoms": "Sem sintomas",
+    "mildSymptoms": "Sintomas leves",
+    "moderateSymptoms": "Sintomas moderados",
+    "severeSymptoms": "Sintomas graves",
+    "phases": {
+      "elimination": "Fase de Eliminação",
+      "reintroduction": "Fase de Reintrodução",
+      "personalization": "Fase de Personalização"
+    },
+    "foodGroups": {
+      "fructose": "Frutose",
+      "lactose": "Lactose",
+      "fructans": "Frutanos",
+      "galactans": "Galactanos",
+      "polyols": "Polióis"
+    }
+  },
+  "profile": {
+    "title": "Perfil",
+    "settings": "Configurações",
+    "language": "Idioma",
+    "notifications": "Notificações",
+    "about": "Sobre"
+  }
 }

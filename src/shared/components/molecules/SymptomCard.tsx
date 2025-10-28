@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, ViewStyle, TextStyle } from 'react-native';
 import { Card } from '../atoms';
-import { colors, spacing, typography } from '../../theme';
+import { useTheme } from '../../theme';
 import { Symptom, SymptomSeverity } from '../../../core/domain/entities/ReintroductionTest';
 
 interface SymptomCardProps {
@@ -10,6 +10,9 @@ interface SymptomCardProps {
 }
 
 export const SymptomCard: React.FC<SymptomCardProps> = ({ symptom, onPress }) => {
+  const { theme } = useTheme();
+  const { colors, spacing, typography } = theme;
+
   const getSeverityColor = (severity: SymptomSeverity) => {
     switch (severity) {
       case SymptomSeverity.NONE:
@@ -21,7 +24,7 @@ export const SymptomCard: React.FC<SymptomCardProps> = ({ symptom, onPress }) =>
       case SymptomSeverity.SEVERE:
         return colors.error;
       default:
-        return colors.neutral500;
+        return colors.textTertiary;
     }
   };
 
@@ -43,23 +46,61 @@ export const SymptomCard: React.FC<SymptomCardProps> = ({ symptom, onPress }) =>
   const severityColor = getSeverityColor(symptom.severity);
   const severityLabel = getSeverityLabel(symptom.severity);
 
+  const headerStyle: ViewStyle = {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  };
+
+  const typeStyle: TextStyle = {
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text,
+    textTransform: 'capitalize',
+  };
+
+  const badgeStyle: ViewStyle = {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 12,
+    backgroundColor: severityColor,
+  };
+
+  const badgeTextStyle: TextStyle = {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+    color: colors.textOnPrimary,
+  };
+
+  const notesStyle: TextStyle = {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  };
+
+  const timestampStyle: TextStyle = {
+    fontSize: typography.fontSize.xs,
+    color: colors.textTertiary,
+  };
+
   return (
     <Card
       onPress={onPress}
       accessibilityLabel={`${symptom.type} symptom, severity ${severityLabel}`}
       accessibilityHint={onPress ? 'Tap to view details' : undefined}
     >
-      <View style={styles.header}>
-        <Text style={styles.type}>{symptom.type}</Text>
-        <View style={[styles.badge, { backgroundColor: severityColor }]}>
-          <Text style={styles.badgeText}>{severityLabel}</Text>
+      <View style={headerStyle}>
+        <Text style={typeStyle}>{symptom.type}</Text>
+        <View style={badgeStyle}>
+          <Text style={badgeTextStyle}>{severityLabel}</Text>
         </View>
       </View>
 
-      {symptom.notes && <Text style={styles.notes}>{symptom.notes}</Text>}
+      {symptom.notes && <Text style={notesStyle}>{symptom.notes}</Text>}
 
       <Text
-        style={styles.timestamp}
+        style={timestampStyle}
         accessibilityLabel={`Recorded at ${symptom.timestamp.toLocaleString()}`}
       >
         {symptom.timestamp.toLocaleTimeString()}
@@ -67,37 +108,3 @@ export const SymptomCard: React.FC<SymptomCardProps> = ({ symptom, onPress }) =>
     </Card>
   );
 };
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  type: {
-    fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral900,
-    textTransform: 'capitalize',
-  },
-  badge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 12,
-  },
-  badgeText: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.neutral0,
-  },
-  notes: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral700,
-    marginBottom: spacing.sm,
-  },
-  timestamp: {
-    fontSize: typography.fontSize.xs,
-    color: colors.neutral500,
-  },
-});

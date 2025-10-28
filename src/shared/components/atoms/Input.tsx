@@ -1,21 +1,8 @@
-import React, { useState } from "react";
-import {
-  TextInput,
-  View,
-  Text,
-  StyleSheet,
-  TextInputProps,
-  ViewStyle,
-} from "react-native";
-import {
-  colors,
-  spacing,
-  typography,
-  borderRadius,
-  accessibility,
-} from "../../theme";
+import React, { useState } from 'react';
+import { TextInput, View, Text, TextInputProps, ViewStyle, TextStyle } from 'react-native';
+import { useTheme } from '../../theme';
 
-export interface InputProps extends Omit<TextInputProps, "style"> {
+export interface InputProps extends Omit<TextInputProps, 'style'> {
   label?: string;
   error?: string;
   helperText?: string;
@@ -32,22 +19,58 @@ export const Input: React.FC<InputProps> = ({
   accessibilityLabel,
   ...textInputProps
 }) => {
+  const { theme } = useTheme();
+  const { colors, spacing, typography, borderRadius, accessibility } = theme;
   const [isFocused, setIsFocused] = useState(false);
 
-  const inputStyle = [
-    styles.input,
-    isFocused && styles.inputFocused,
-    error && styles.inputError,
-  ];
+  const containerStyles: ViewStyle = {
+    marginBottom: spacing.md,
+    ...containerStyle,
+  };
+
+  const labelStyle: TextStyle = {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  };
+
+  const requiredStyle: TextStyle = {
+    color: colors.error,
+  };
+
+  const inputStyle: TextStyle = {
+    borderWidth: isFocused ? accessibility.focusOutlineWidth : 1,
+    borderColor: error ? colors.borderError : isFocused ? colors.borderFocus : colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    fontSize: typography.fontSize.md,
+    color: colors.text,
+    backgroundColor: colors.background,
+    minHeight: accessibility.minTouchTarget,
+  };
+
+  const errorTextStyle: TextStyle = {
+    fontSize: typography.fontSize.xs,
+    color: colors.error,
+    marginTop: spacing.xs,
+  };
+
+  const helperTextStyle: TextStyle = {
+    fontSize: typography.fontSize.xs,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  };
 
   const inputAccessibilityLabel = accessibilityLabel || label;
 
   return (
-    <View style={[styles.container, containerStyle]}>
+    <View style={containerStyles}>
       {label && (
-        <Text style={styles.label} accessibilityRole="text">
+        <Text style={labelStyle} accessibilityRole="text">
           {label}
-          {required && <Text style={styles.required}> *</Text>}
+          {required && <Text style={requiredStyle}> *</Text>}
         </Text>
       )}
       <TextInput
@@ -63,67 +86,18 @@ export const Input: React.FC<InputProps> = ({
         }}
         accessible={true}
         accessibilityLabel={inputAccessibilityLabel}
-        accessibilityRequired={required}
-        accessibilityInvalid={!!error}
-        placeholderTextColor={colors.neutral400}
+        placeholderTextColor={colors.textTertiary}
       />
       {error && (
-        <Text
-          style={styles.errorText}
-          accessibilityRole="alert"
-          accessibilityLiveRegion="polite"
-        >
+        <Text style={errorTextStyle} accessibilityRole="alert" accessibilityLiveRegion="polite">
           {error}
         </Text>
       )}
       {helperText && !error && (
-        <Text style={styles.helperText} accessibilityRole="text">
+        <Text style={helperTextStyle} accessibilityRole="text">
           {helperText}
         </Text>
       )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.neutral700,
-    marginBottom: spacing.xs,
-  },
-  required: {
-    color: colors.error,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.neutral300,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    fontSize: typography.fontSize.md,
-    color: colors.neutral900,
-    backgroundColor: colors.neutral0,
-    minHeight: accessibility.minTouchTarget,
-  },
-  inputFocused: {
-    borderColor: colors.primary500,
-    borderWidth: accessibility.focusOutlineWidth,
-  },
-  inputError: {
-    borderColor: colors.error,
-  },
-  errorText: {
-    fontSize: typography.fontSize.xs,
-    color: colors.error,
-    marginTop: spacing.xs,
-  },
-  helperText: {
-    fontSize: typography.fontSize.xs,
-    color: colors.neutral600,
-    marginTop: spacing.xs,
-  },
-});

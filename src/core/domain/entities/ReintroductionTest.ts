@@ -3,17 +3,17 @@
  */
 
 export enum FODMAPGroup {
-  FRUCTOSE = "fructose",
-  LACTOSE = "lactose",
-  FRUCTANS = "fructans",
-  GALACTANS = "galactans",
-  POLYOLS = "polyols",
+  FRUCTOSE = 'fructose',
+  LACTOSE = 'lactose',
+  FRUCTANS = 'fructans',
+  GALACTANS = 'galactans',
+  POLYOLS = 'polyols',
 }
 
 export enum TestPhase {
-  ELIMINATION = "elimination",
-  REINTRODUCTION = "reintroduction",
-  PERSONALIZATION = "personalization",
+  ELIMINATION = 'elimination',
+  REINTRODUCTION = 'reintroduction',
+  PERSONALIZATION = 'personalization',
 }
 
 export enum SymptomSeverity {

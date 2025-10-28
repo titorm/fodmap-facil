@@ -1,34 +1,154 @@
-# FODMAP Reintroduction App
+# FODMAP Fácil
 
-App React Native (Expo) para gerenciamento do protocolo de reintrodução FODMAP, com arquitetura limpa, alta acessibilidade e internacionalização.
+A comprehensive React Native (Expo) mobile application for managing the FODMAP reintroduction protocol. Built with clean architecture, high accessibility standards, and full internationalization support.
 
-## 🏗️ Arquitetura
+## 📱 Overview
 
-### Clean Architecture
+FODMAP Fácil helps users navigate the FODMAP reintroduction protocol with a scientifically-backed, user-friendly mobile experience. The app provides:
+
+- **Guided Reintroduction Journey**: Step-by-step protocol for testing FODMAP groups
+- **Food Diary**: Track meals, symptoms, and reactions in real-time
+- **Progress Reports**: Visualize tolerance patterns and test results
+- **Personalized Profile**: Manage preferences, language, and theme settings
+- **Offline-First**: Full functionality without internet connection
+- **Accessible**: WCAG 2.1 AA/AAA compliant for all users
+- **Bilingual**: Portuguese and English support
+
+## ✨ Key Features
+
+### 🏠 Home Dashboard
+
+- Quick access to active reintroduction tests
+- Recent symptom entries
+- Progress overview
+
+### 🚶 Journey Tracking
+
+- Visual timeline of reintroduction phases
+- Protocol guidance for each FODMAP group
+- Test scheduling and reminders
+
+### 📔 Food Diary
+
+- Log meals with FODMAP content
+- Record symptoms with severity levels
+- Photo attachments for meals
+- Search and filter entries
+
+### 📊 Reports & Analytics
+
+- Tolerance patterns by FODMAP group
+- Symptom trends over time
+- Exportable reports for healthcare providers
+
+### 👤 Profile Management
+
+- Language preferences (PT/EN)
+- Theme selection (Light/Dark/System)
+- Account settings
+- Data export and privacy controls
+
+## 📁 Project Structure
+
+The project follows a feature-based clean architecture with clear separation of concerns:
 
 ```
-src/
-├── core/                    # Camada de Domínio
-│   ├── domain/             # Entidades e interfaces
-│   ├── usecases/           # Casos de uso
-│   └── engine/             # Engine determinístico (regras FODMAP)
-├── features/               # Features da aplicação
-│   ├── auth/              # Autenticação
-│   ├── reintroduction/    # Testes de reintrodução
-│   └── profile/           # Perfil do usuário
-├── shared/                # Código compartilhado
-│   ├── components/        # Design System (atoms, molecules, organisms)
-│   ├── hooks/            # React hooks customizados
-│   ├── theme/            # Tokens de design
-│   ├── i18n/             # Internacionalização
-│   ├── utils/            # Utilitários
-│   └── fixtures/         # Dados de teste
-├── infrastructure/        # Camada de Infraestrutura
-│   ├── api/              # Supabase client
-│   ├── database/         # SQLite + Drizzle ORM
-│   └── storage/          # Armazenamento local
-└── navigation/           # Navegação (React Navigation)
+fodmap-facil/
+├── .github/
+│   └── workflows/              # CI/CD pipeline configurations
+│       └── ci.yml             # Automated testing and linting
+├── .kiro/
+│   └── specs/                 # Feature specifications and design docs
+├── assets/                    # Static assets (images, icons, fonts)
+│   ├── icon.png              # App icon
+│   ├── splash-icon.png       # Splash screen
+│   └── adaptive-icon.png     # Android adaptive icon
+├── scripts/                   # Build and deployment automation
+│   ├── prebuild.sh           # Pre-build checks and setup
+│   ├── build-android.sh      # Android build automation
+│   ├── build-ios.sh          # iOS build automation
+│   └── deploy.sh             # Deployment automation
+├── src/
+│   ├── core/                  # Domain Layer (Business Logic)
+│   │   ├── domain/           # Domain entities and interfaces
+│   │   │   └── entities/     # User, ReintroductionTest, Symptom
+│   │   ├── usecases/         # Use case implementations
+│   │   │   └── CreateReintroductionTest.ts
+│   │   └── engine/           # FODMAP protocol engine
+│   │       └── ReintroductionEngine.ts
+│   ├── features/              # Feature Modules
+│   │   ├── auth/             # Authentication
+│   │   │   ├── components/   # Auth-specific components
+│   │   │   └── screens/      # SignInScreen, SignUpScreen
+│   │   ├── reintroduction/   # Reintroduction tests
+│   │   │   ├── components/   # Test cards, protocol guides
+│   │   │   └── screens/      # ReintroductionHomeScreen
+│   │   ├── journey/          # Journey tracking
+│   │   │   └── screens/      # JourneyScreen
+│   │   ├── diary/            # Food diary
+│   │   │   └── screens/      # DiaryScreen
+│   │   ├── reports/          # Reports and analytics
+│   │   │   └── screens/      # ReportsScreen
+│   │   └── profile/          # User profile
+│   │       └── screens/      # ProfileScreen
+│   ├── infrastructure/        # Infrastructure Layer
+│   │   ├── api/              # External API clients
+│   │   │   └── supabase.ts   # Supabase configuration
+│   │   ├── database/         # Local database
+│   │   │   ├── client.ts     # SQLite client
+│   │   │   └── schema.ts     # Drizzle ORM schemas
+│   │   └── storage/          # Storage adapters
+│   ├── navigation/            # Navigation configuration
+│   │   └── AppNavigator.tsx  # Stack + Tab navigation setup
+│   └── shared/                # Shared Resources
+│       ├── components/        # Design System
+│       │   ├── atoms/        # Button, Input, Card, Text
+│       │   ├── molecules/    # SymptomCard, TestCard, FormField
+│       │   └── organisms/    # TestList, SymptomTracker
+│       ├── fixtures/         # Test data and mocks
+│       ├── hooks/            # Custom React hooks
+│       │   ├── useAuth.ts
+│       │   └── useReintroductionTests.ts
+│       ├── i18n/             # Internationalization
+│       │   ├── locales/      # Translation files (pt.json, en.json)
+│       │   └── index.ts      # i18n configuration
+│       ├── mocks/            # MSW mock handlers for testing
+│       ├── stores/           # Zustand state management
+│       │   └── appStore.ts
+│       ├── theme/            # Design tokens and theming
+│       │   ├── tokens.ts     # Colors, spacing, typography
+│       │   ├── ThemeProvider.tsx
+│       │   └── index.ts
+│       └── utils/            # Utility functions
+│           └── validation.ts # Zod schemas
+├── .env.example               # Environment variables template
+├── .eslintrc.js              # ESLint configuration
+├── .prettierrc               # Prettier configuration
+├── app.json                  # Expo configuration
+├── drizzle.config.ts         # Drizzle ORM configuration
+├── eas.json                  # EAS Build profiles
+├── jest.config.js            # Jest testing configuration
+├── jest.setup.js             # Jest setup and matchers
+├── package.json              # Dependencies and scripts
+├── tsconfig.json             # TypeScript configuration
+└── README.md                 # This file
 ```
+
+### Architecture Principles
+
+**Clean Architecture Layers:**
+
+- **Domain Layer** (`core/`): Business logic, entities, and use cases
+- **Infrastructure Layer** (`infrastructure/`): External services and data persistence
+- **Presentation Layer** (`features/`, `shared/components/`): UI components and screens
+- **Cross-Cutting Concerns** (`shared/`): Theme, i18n, utilities
+
+**Design Patterns:**
+
+- **Feature-Based Organization**: Code organized by feature for better encapsulation
+- **Atomic Design**: Components structured as atoms → molecules → organisms
+- **Repository Pattern**: Data access abstraction in infrastructure layer
+- **Dependency Injection**: Loose coupling between layers
 
 ## 🚀 Stack Tecnológica
 
@@ -69,51 +189,83 @@ src/
 - **ESLint** - Linting
 - **Prettier** - Formatação
 
-## 📦 Instalação
+## 🚀 Getting Started
 
-### Pré-requisitos
+### Prerequisites
 
-- Node.js 18+
-- npm ou yarn
-- Expo CLI
-- Conta Supabase (para backend)
+Before you begin, ensure you have the following installed:
 
-### Setup
+- **Node.js** 18.0 or higher ([Download](https://nodejs.org/))
+- **npm** or **pnpm** (comes with Node.js)
+- **Expo CLI** (will be installed with dependencies)
+- **Git** for version control
+- **Supabase Account** for backend services ([Sign up](https://supabase.com/))
 
-1. Clone o repositório:
+For mobile development:
+
+- **iOS**: macOS with Xcode 14+ and iOS Simulator
+- **Android**: Android Studio with Android SDK and emulator
+- **Physical Device**: Expo Go app ([iOS](https://apps.apple.com/app/expo-go/id982107779) | [Android](https://play.google.com/store/apps/details?id=host.exp.exponent))
+
+### Installation
+
+1. **Clone the repository:**
 
 ```bash
-git clone <repo-url>
-cd fodmap-reintro-app
+git clone https://github.com/your-username/fodmap-facil.git
+cd fodmap-facil
 ```
 
-2. Instale as dependências:
+2. **Install dependencies:**
+
+Using npm:
 
 ```bash
 npm install
 ```
 
-3. Configure as variáveis de ambiente:
+Using pnpm (recommended):
+
+```bash
+pnpm install
+```
+
+3. **Configure environment variables:**
+
+Copy the example environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-Edite `.env` e adicione suas credenciais Supabase:
+Edit `.env` and add your Supabase credentials:
 
+```bash
+# Supabase Configuration
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+
+# Optional: Analytics and Error Tracking
+EXPO_PUBLIC_SENTRY_DSN=
+EXPO_PUBLIC_ANALYTICS_ID=
 ```
-EXPO_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=sua-chave-anon
-```
 
-4. Configure o Supabase:
+**Getting Supabase Credentials:**
 
-Execute no SQL Editor do Supabase:
+1. Go to [Supabase Dashboard](https://app.supabase.com/)
+2. Create a new project or select existing one
+3. Navigate to Settings → API
+4. Copy the Project URL and anon/public key
+
+5. **Set up Supabase database:**
+
+Run the following SQL in your Supabase SQL Editor (Dashboard → SQL Editor):
 
 ```sql
--- Tabela de usuários (já existe via Auth)
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Tabela de testes de reintrodução
+-- Reintroduction Tests Table
 CREATE TABLE reintroduction_tests (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -129,21 +281,22 @@ CREATE TABLE reintroduction_tests (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Tabela de sintomas
+-- Symptoms Table
 CREATE TABLE symptoms (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   test_id UUID REFERENCES reintroduction_tests(id) ON DELETE CASCADE,
   type TEXT NOT NULL,
-  severity INTEGER NOT NULL,
+  severity INTEGER NOT NULL CHECK (severity BETWEEN 0 AND 10),
   notes TEXT,
   timestamp TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- RLS Policies
+-- Enable Row Level Security
 ALTER TABLE reintroduction_tests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE symptoms ENABLE ROW LEVEL SECURITY;
 
+-- RLS Policies for reintroduction_tests
 CREATE POLICY "Users can view own tests"
   ON reintroduction_tests FOR SELECT
   USING (auth.uid() = user_id);
@@ -156,6 +309,11 @@ CREATE POLICY "Users can update own tests"
   ON reintroduction_tests FOR UPDATE
   USING (auth.uid() = user_id);
 
+CREATE POLICY "Users can delete own tests"
+  ON reintroduction_tests FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- RLS Policies for symptoms
 CREATE POLICY "Users can view own symptoms"
   ON symptoms FOR SELECT
   USING (
@@ -175,84 +333,342 @@ CREATE POLICY "Users can insert own symptoms"
       AND reintroduction_tests.user_id = auth.uid()
     )
   );
+
+CREATE POLICY "Users can update own symptoms"
+  ON symptoms FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM reintroduction_tests
+      WHERE reintroduction_tests.id = symptoms.test_id
+      AND reintroduction_tests.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can delete own symptoms"
+  ON symptoms FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM reintroduction_tests
+      WHERE reintroduction_tests.id = symptoms.test_id
+      AND reintroduction_tests.user_id = auth.uid()
+    )
+  );
+
+-- Indexes for performance
+CREATE INDEX idx_reintroduction_tests_user_id ON reintroduction_tests(user_id);
+CREATE INDEX idx_symptoms_test_id ON symptoms(test_id);
+CREATE INDEX idx_symptoms_timestamp ON symptoms(timestamp);
 ```
 
-## 🎯 Comandos
-
-### Desenvolvimento
+5. **Start the development server:**
 
 ```bash
-# Iniciar dev server
+npm start
+```
+
+This will open the Expo DevTools in your browser. From here you can:
+
+- Press `i` to open iOS Simulator
+- Press `a` to open Android Emulator
+- Scan QR code with Expo Go app on your physical device
+
+## 💻 Development Commands
+
+### Running the App
+
+Start the development server and run on different platforms:
+
+```bash
+# Start Expo development server
 npm start
 
-# Rodar no Android
-npm run android
-
-# Rodar no iOS
+# Run on iOS Simulator (macOS only)
 npm run ios
 
-# Rodar na Web
+# Run on Android Emulator
+npm run android
+
+# Run in web browser
 npm run web
 ```
 
-### Testes
+**Development Tips:**
+
+- Press `r` in terminal to reload the app
+- Press `m` to toggle menu
+- Shake device to open developer menu on physical devices
+- Use `--clear` flag to clear cache: `npm start -- --clear`
+
+### Testing
+
+Run tests to ensure code quality and functionality:
 
 ```bash
-# Rodar todos os testes
+# Run all tests once
 npm test
 
-# Modo watch
+# Run tests in watch mode (re-runs on file changes)
 npm run test:watch
 
-# Com coverage
+# Run tests with coverage report
 npm run test:coverage
 ```
 
-### Qualidade de Código
+**Test Coverage Targets:**
+
+- Core business logic: 80%+
+- Utilities and helpers: 90%+
+- React hooks: 70%+
+- Components: 60%+
+
+### Code Quality
+
+Maintain code quality with linting, formatting, and type checking:
 
 ```bash
-# Lint
+# Run ESLint to check for code issues
 npm run lint
 
-# Lint com fix automático
+# Run ESLint and automatically fix issues
 npm run lint:fix
 
-# Formatação
+# Format code with Prettier
 npm run format
 
-# Verificar formatação
+# Check if code is properly formatted
 npm run format:check
 
-# Type checking
+# Run TypeScript type checking
 npm run type-check
 ```
 
-### Build e Deploy
+**Pre-commit Checklist:**
+
+1. `npm run type-check` - No TypeScript errors
+2. `npm run lint` - No ESLint errors
+3. `npm run format:check` - Code is formatted
+4. `npm test` - All tests pass
+
+### Database Management
+
+Manage local SQLite database with Drizzle ORM:
 
 ```bash
-# Prebuild (gera pastas nativas)
-npm run prebuild
+# Generate migration files from schema changes
+npm run db:generate
 
-# Build Android (EAS)
+# Apply migrations to database
+npm run db:migrate
+```
+
+## 📦 Building the App
+
+### EAS Build Setup
+
+1. **Install EAS CLI globally:**
+
+```bash
+npm install -g eas-cli
+```
+
+2. **Login to your Expo account:**
+
+```bash
+eas login
+```
+
+3. **Configure EAS Build (if not already configured):**
+
+```bash
+eas build:configure
+```
+
+This creates/updates `eas.json` with build profiles.
+
+### Build Profiles
+
+The project includes three build profiles in `eas.json`:
+
+**Development:**
+
+- Development client with debugging enabled
+- Fast iteration for testing
+- Internal distribution only
+
+**Preview:**
+
+- Production-like build for testing
+- APK for Android (faster than AAB)
+- Ad-hoc distribution for iOS
+- Test on real devices before store submission
+
+**Production:**
+
+- Optimized builds for app stores
+- Auto-increment version numbers
+- Code signing for distribution
+- Ready for Google Play and App Store
+
+### Building for Android
+
+```bash
+# Development build
+eas build --platform android --profile development
+
+# Preview build (APK for testing)
+eas build --platform android --profile preview
+
+# Production build (AAB for Google Play)
+eas build --platform android --profile production
+
+# Or use the npm script
 npm run build:android
+```
 
-# Build iOS (EAS)
+**Android Build Notes:**
+
+- Development builds require Expo Go or development client
+- Preview builds generate APK files for easy distribution
+- Production builds generate AAB (Android App Bundle) for Play Store
+- First build may take 15-20 minutes; subsequent builds are faster
+
+### Building for iOS
+
+```bash
+# Development build
+eas build --platform ios --profile development
+
+# Preview build (Ad-hoc distribution)
+eas build --platform ios --profile preview
+
+# Production build (App Store)
+eas build --platform ios --profile production
+
+# Or use the npm script
 npm run build:ios
+```
 
-# Submit para stores
+**iOS Build Notes:**
+
+- Requires Apple Developer account ($99/year)
+- Must configure provisioning profiles and certificates
+- Development builds require development provisioning profile
+- Production builds require distribution certificate
+- First build may take 20-30 minutes
+
+### Build Automation Scripts
+
+The project includes helper scripts in the `scripts/` directory:
+
+```bash
+# Run pre-build checks and setup
+./scripts/prebuild.sh
+
+# Automated Android build with error handling
+./scripts/build-android.sh
+
+# Automated iOS build with error handling
+./scripts/build-ios.sh
+
+# Deployment automation
+./scripts/deploy.sh
+```
+
+Make scripts executable if needed:
+
+```bash
+chmod +x scripts/*.sh
+```
+
+## 🚀 Deployment
+
+### Submitting to App Stores
+
+After building production versions, submit to app stores:
+
+**Google Play Store:**
+
+```bash
+# Submit Android build
+eas submit --platform android
+
+# Or use npm script
 npm run submit:android
+```
+
+**Requirements:**
+
+- Google Play Developer account ($25 one-time fee)
+- Production AAB build
+- App listing details (screenshots, description, etc.)
+- Privacy policy URL
+
+**Apple App Store:**
+
+```bash
+# Submit iOS build
+eas submit --platform ios
+
+# Or use npm script
 npm run submit:ios
 ```
 
-### Database
+**Requirements:**
+
+- Apple Developer account ($99/year)
+- Production IPA build
+- App Store Connect listing
+- App icons and screenshots
+- Privacy policy and terms
+
+### Deployment Workflow
+
+1. **Prepare Release:**
+   - Update version in `app.json`
+   - Update changelog
+   - Run all tests: `npm test`
+   - Check types: `npm run type-check`
+   - Lint code: `npm run lint`
+
+2. **Build:**
+   - Android: `npm run build:android`
+   - iOS: `npm run build:ios`
+   - Wait for builds to complete (check EAS dashboard)
+
+3. **Test Builds:**
+   - Download and install preview builds
+   - Test on real devices
+   - Verify all features work correctly
+
+4. **Submit:**
+   - Android: `npm run submit:android`
+   - iOS: `npm run submit:ios`
+   - Fill in store listing details
+   - Submit for review
+
+5. **Monitor:**
+   - Check submission status in store dashboards
+   - Respond to review feedback if needed
+   - Monitor crash reports and user feedback
+
+### Over-The-Air (OTA) Updates
+
+For JavaScript-only changes (no native code), use OTA updates:
 
 ```bash
-# Gerar migrations
-npm run db:generate
+# Publish update to production channel
+eas update --branch production --message "Bug fixes and improvements"
 
-# Aplicar migrations
-npm run db:migrate
+# Publish to preview channel
+eas update --branch preview --message "Testing new features"
 ```
+
+**OTA Update Notes:**
+
+- Only updates JavaScript bundle, not native code
+- Users get updates automatically on next app launch
+- Much faster than full app store submission
+- Cannot update native dependencies or configuration
 
 ## 🧪 Testes
 
@@ -626,29 +1042,227 @@ export const Default = {
 
 ## 🐛 Troubleshooting
 
-### Erro: "Unable to resolve module"
+### Common Issues and Solutions
+
+#### "Unable to resolve module" Error
+
+This usually indicates a caching issue or missing dependency.
+
+**Solution:**
 
 ```bash
-# Limpar cache
+# Clear Metro bundler cache
 npm start -- --clear
 
-# Reinstalar dependências
+# Clear watchman cache (macOS/Linux)
+watchman watch-del-all
+
+# Reinstall dependencies
 rm -rf node_modules
 npm install
+
+# Clear npm cache
+npm cache clean --force
 ```
 
-### Erro: SQLite não funciona
+#### Metro Bundler Won't Start
+
+**Solution:**
 
 ```bash
-# Rebuild do projeto
-npx expo prebuild --clean
+# Kill any processes using port 8081
+lsof -ti:8081 | xargs kill -9
+
+# Or on Windows
+netstat -ano | findstr :8081
+taskkill /PID <PID> /F
+
+# Restart Metro
+npm start
 ```
 
-### Erro: Supabase não conecta
+#### SQLite Database Not Working
 
-- Verifique `.env` com credenciais corretas
-- Confirme que RLS policies estão configuradas
-- Teste conexão no Supabase Dashboard
+**Solution:**
+
+```bash
+# Rebuild native modules
+npx expo prebuild --clean
+
+# For iOS, also reinstall pods
+cd ios && pod install && cd ..
+
+# Restart development server
+npm start
+```
+
+#### Supabase Connection Issues
+
+**Symptoms:** Authentication fails, data doesn't sync, API errors
+
+**Solution:**
+
+1. Verify `.env` file has correct credentials:
+   ```bash
+   cat .env
+   ```
+2. Check Supabase project status in dashboard
+3. Verify RLS policies are configured correctly
+4. Test connection in Supabase SQL Editor:
+   ```sql
+   SELECT * FROM reintroduction_tests LIMIT 1;
+   ```
+5. Check network connectivity
+6. Verify API URL doesn't have trailing slash
+
+#### TypeScript Errors After Update
+
+**Solution:**
+
+```bash
+# Regenerate TypeScript types
+npm run type-check
+
+# Clear TypeScript cache
+rm -rf node_modules/.cache
+
+# Restart TypeScript server in VS Code
+# Command Palette (Cmd+Shift+P) → "TypeScript: Restart TS Server"
+```
+
+#### iOS Build Fails
+
+**Common causes and solutions:**
+
+1. **CocoaPods issues:**
+
+   ```bash
+   cd ios
+   pod deintegrate
+   pod install
+   cd ..
+   ```
+
+2. **Xcode version mismatch:**
+   - Ensure Xcode 14+ is installed
+   - Run: `sudo xcode-select --switch /Applications/Xcode.app`
+
+3. **Provisioning profile issues:**
+   - Check Apple Developer account status
+   - Regenerate certificates in EAS dashboard
+   - Run: `eas credentials`
+
+#### Android Build Fails
+
+**Common causes and solutions:**
+
+1. **Gradle issues:**
+
+   ```bash
+   cd android
+   ./gradlew clean
+   cd ..
+   ```
+
+2. **Java version mismatch:**
+   - Ensure Java 11 or 17 is installed
+   - Check: `java -version`
+
+3. **SDK/NDK issues:**
+   - Update Android Studio
+   - Install required SDK versions via SDK Manager
+
+#### App Crashes on Startup
+
+**Solution:**
+
+1. Check error logs:
+
+   ```bash
+   # iOS
+   npx react-native log-ios
+
+   # Android
+   npx react-native log-android
+   ```
+
+2. Clear app data:
+   - iOS: Delete app and reinstall
+   - Android: Settings → Apps → FODMAP Fácil → Clear Data
+
+3. Check for missing environment variables
+
+4. Verify Supabase configuration
+
+#### Tests Failing
+
+**Solution:**
+
+```bash
+# Clear Jest cache
+npm test -- --clearCache
+
+# Run tests with verbose output
+npm test -- --verbose
+
+# Run specific test file
+npm test -- path/to/test.test.ts
+```
+
+#### Expo Go App Shows Error
+
+**Solution:**
+
+1. Ensure Expo Go app is up to date
+2. Check that device and computer are on same network
+3. Try connecting via tunnel:
+   ```bash
+   npm start -- --tunnel
+   ```
+4. Restart Expo Go app
+
+#### Performance Issues
+
+**Solution:**
+
+1. Enable Hermes engine (already enabled in `app.json`)
+2. Check for memory leaks with React DevTools
+3. Optimize images (use WebP format)
+4. Reduce bundle size:
+   ```bash
+   npx react-native-bundle-visualizer
+   ```
+
+#### Environment Variables Not Loading
+
+**Solution:**
+
+1. Ensure `.env` file exists in root directory
+2. Restart development server after changing `.env`
+3. Verify variable names start with `EXPO_PUBLIC_`
+4. Check for typos in variable names
+
+### Getting Help
+
+If you're still experiencing issues:
+
+1. **Check Expo Documentation:** [docs.expo.dev](https://docs.expo.dev/)
+2. **Search Expo Forums:** [forums.expo.dev](https://forums.expo.dev/)
+3. **GitHub Issues:** Check existing issues or create a new one
+4. **Supabase Support:** [supabase.com/support](https://supabase.com/support)
+5. **Stack Overflow:** Tag questions with `expo`, `react-native`, `supabase`
+
+### Debug Mode
+
+Enable additional logging for troubleshooting:
+
+```bash
+# Enable verbose logging
+EXPO_DEBUG=true npm start
+
+# Enable React Native debugging
+npm start -- --dev-client
+```
 
 ## 📚 Recursos
 

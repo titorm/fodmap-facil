@@ -1,12 +1,12 @@
-import React from "react";
-import { View, StyleSheet, ViewStyle, TouchableOpacity } from "react-native";
-import { colors, spacing, borderRadius, shadows } from "../../theme";
+import React from 'react';
+import { View, TouchableOpacity, ViewStyle } from 'react-native';
+import { useTheme } from '../../theme';
 
 export interface CardProps {
   children: React.ReactNode;
   style?: ViewStyle;
   onPress?: () => void;
-  elevation?: "sm" | "md" | "lg";
+  elevation?: 'sm' | 'md' | 'lg';
   accessibilityLabel?: string;
   accessibilityHint?: string;
   testID?: string;
@@ -16,12 +16,21 @@ export const Card: React.FC<CardProps> = ({
   children,
   style,
   onPress,
-  elevation = "md",
+  elevation = 'md',
   accessibilityLabel,
   accessibilityHint,
   testID,
 }) => {
-  const cardStyle = [styles.card, shadows[elevation], style];
+  const { theme } = useTheme();
+  const { colors, spacing, borderRadius, shadows } = theme;
+
+  const cardStyle: ViewStyle = {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    ...shadows[elevation],
+    ...style,
+  };
 
   if (onPress) {
     return (
@@ -51,11 +60,3 @@ export const Card: React.FC<CardProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.neutral0,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-  },
-});

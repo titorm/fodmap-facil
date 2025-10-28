@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
-import { StatusBar } from "expo-status-bar";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { AppNavigator } from "./src/navigation/AppNavigator";
-import { initDatabase } from "./src/infrastructure/database/client";
-import "./src/shared/i18n";
+import React, { useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AppNavigator } from './src/navigation/AppNavigator';
+import { initDatabase } from './src/infrastructure/database/client';
+import { ThemeProvider } from './src/shared/theme';
+import './src/shared/i18n';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,10 +23,12 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <AppNavigator />
-        <StatusBar style="auto" />
-      </QueryClientProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <AppNavigator />
+          <StatusBar style="auto" />
+        </QueryClientProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

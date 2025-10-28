@@ -1,26 +1,19 @@
-import React from "react";
+import React from 'react';
 import {
   TouchableOpacity,
   Text,
-  StyleSheet,
   ActivityIndicator,
   AccessibilityRole,
   ViewStyle,
   TextStyle,
-} from "react-native";
-import {
-  colors,
-  spacing,
-  typography,
-  borderRadius,
-  accessibility,
-} from "../../theme";
+} from 'react-native';
+import { useTheme } from '../../theme';
 
 export interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: "primary" | "secondary" | "outline" | "ghost";
-  size?: "small" | "medium" | "large";
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
@@ -32,8 +25,8 @@ export interface ButtonProps {
 export const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
-  variant = "primary",
-  size = "medium",
+  variant = 'primary',
+  size = 'medium',
   disabled = false,
   loading = false,
   fullWidth = false,
@@ -41,28 +34,86 @@ export const Button: React.FC<ButtonProps> = ({
   accessibilityHint,
   testID,
 }) => {
-  const buttonStyle: ViewStyle[] = [
-    styles.base,
-    styles[variant],
-    styles[`size_${size}`],
-    fullWidth && styles.fullWidth,
-    (disabled || loading) && styles.disabled,
-  ];
+  const { theme } = useTheme();
+  const { colors, spacing, typography, borderRadius, accessibility } = theme;
 
-  const textStyle: TextStyle[] = [
-    styles.text,
-    styles[`text_${variant}`],
-    styles[`textSize_${size}`],
-    (disabled || loading) && styles.textDisabled,
-  ];
+  const getButtonStyle = (): ViewStyle => {
+    const base: ViewStyle = {
+      borderRadius: borderRadius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: accessibility.minTouchTarget,
+    };
+
+    const variantStyles: Record<string, ViewStyle> = {
+      primary: { backgroundColor: colors.primary500 },
+      secondary: { backgroundColor: colors.secondary500 },
+      outline: {
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        borderColor: colors.interactive,
+      },
+      ghost: { backgroundColor: 'transparent' },
+    };
+
+    const sizeStyles: Record<string, ViewStyle> = {
+      small: {
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+      },
+      medium: {
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+      },
+      large: {
+        paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.lg,
+      },
+    };
+
+    return {
+      ...base,
+      ...variantStyles[variant],
+      ...sizeStyles[size],
+      ...(fullWidth && { width: '100%' }),
+      ...((disabled || loading) && { opacity: 0.5 }),
+    };
+  };
+
+  const getTextStyle = (): TextStyle => {
+    const base: TextStyle = {
+      fontFamily: typography.fontFamily.medium,
+      textAlign: 'center',
+    };
+
+    const variantStyles: Record<string, TextStyle> = {
+      primary: { color: colors.textOnPrimary },
+      secondary: { color: colors.textOnSecondary },
+      outline: { color: colors.interactive },
+      ghost: { color: colors.interactive },
+    };
+
+    const sizeStyles: Record<string, TextStyle> = {
+      small: { fontSize: typography.fontSize.sm },
+      medium: { fontSize: typography.fontSize.md },
+      large: { fontSize: typography.fontSize.lg },
+    };
+
+    return {
+      ...base,
+      ...variantStyles[variant],
+      ...sizeStyles[size],
+      ...((disabled || loading) && { opacity: 0.7 }),
+    };
+  };
 
   return (
     <TouchableOpacity
-      style={buttonStyle}
+      style={getButtonStyle()}
       onPress={onPress}
       disabled={disabled || loading}
       accessible={true}
-      accessibilityRole={"button" as AccessibilityRole}
+      accessibilityRole={'button' as AccessibilityRole}
       accessibilityLabel={accessibilityLabel || title}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
@@ -70,81 +121,12 @@ export const Button: React.FC<ButtonProps> = ({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === "primary" ? colors.neutral0 : colors.primary500}
+          color={variant === 'primary' ? colors.textOnPrimary : colors.interactive}
           size="small"
         />
       ) : (
-        <Text style={textStyle}>{title}</Text>
+        <Text style={getTextStyle()}>{title}</Text>
       )}
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  base: {
-    borderRadius: borderRadius.md,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: accessibility.minTouchTarget,
-  },
-  primary: {
-    backgroundColor: colors.primary500,
-  },
-  secondary: {
-    backgroundColor: colors.secondary500,
-  },
-  outline: {
-    backgroundColor: "transparent",
-    borderWidth: 2,
-    borderColor: colors.primary500,
-  },
-  ghost: {
-    backgroundColor: "transparent",
-  },
-  size_small: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  size_medium: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  size_large: {
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
-  },
-  fullWidth: {
-    width: "100%",
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  text: {
-    fontFamily: typography.fontFamily.medium,
-    textAlign: "center",
-  },
-  text_primary: {
-    color: colors.neutral0,
-  },
-  text_secondary: {
-    color: colors.neutral0,
-  },
-  text_outline: {
-    color: colors.primary500,
-  },
-  text_ghost: {
-    color: colors.primary500,
-  },
-  textSize_small: {
-    fontSize: typography.fontSize.sm,
-  },
-  textSize_medium: {
-    fontSize: typography.fontSize.md,
-  },
-  textSize_large: {
-    fontSize: typography.fontSize.lg,
-  },
-  textDisabled: {
-    opacity: 0.7,
-  },
-});

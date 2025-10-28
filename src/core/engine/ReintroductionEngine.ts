@@ -17,47 +17,44 @@ import {
   SymptomSeverity,
   ReintroductionProtocol,
   ReintroductionTest,
-} from "../domain/entities/ReintroductionTest";
+} from '../domain/entities/ReintroductionTest';
 
 export class ReintroductionEngine {
-  private static readonly PROTOCOLS: Record<
-    FODMAPGroup,
-    ReintroductionProtocol
-  > = {
+  private static readonly PROTOCOLS: Record<FODMAPGroup, ReintroductionProtocol> = {
     [FODMAPGroup.FRUCTOSE]: {
       fodmapGroup: FODMAPGroup.FRUCTOSE,
       testDuration: 3,
       washoutPeriod: 3,
-      recommendedFoods: ["Honey", "Mango", "Asparagus"],
-      portionProgression: ["1 tsp", "2 tsp", "1 tbsp"],
+      recommendedFoods: ['Honey', 'Mango', 'Asparagus'],
+      portionProgression: ['1 tsp', '2 tsp', '1 tbsp'],
     },
     [FODMAPGroup.LACTOSE]: {
       fodmapGroup: FODMAPGroup.LACTOSE,
       testDuration: 3,
       washoutPeriod: 3,
-      recommendedFoods: ["Milk", "Yogurt", "Ice cream"],
-      portionProgression: ["1/4 cup", "1/2 cup", "1 cup"],
+      recommendedFoods: ['Milk', 'Yogurt', 'Ice cream'],
+      portionProgression: ['1/4 cup', '1/2 cup', '1 cup'],
     },
     [FODMAPGroup.FRUCTANS]: {
       fodmapGroup: FODMAPGroup.FRUCTANS,
       testDuration: 3,
       washoutPeriod: 3,
-      recommendedFoods: ["Wheat bread", "Garlic", "Onion"],
-      portionProgression: ["1 slice", "2 slices", "3 slices"],
+      recommendedFoods: ['Wheat bread', 'Garlic', 'Onion'],
+      portionProgression: ['1 slice', '2 slices', '3 slices'],
     },
     [FODMAPGroup.GALACTANS]: {
       fodmapGroup: FODMAPGroup.GALACTANS,
       testDuration: 3,
       washoutPeriod: 3,
-      recommendedFoods: ["Chickpeas", "Lentils", "Kidney beans"],
-      portionProgression: ["1/4 cup", "1/2 cup", "3/4 cup"],
+      recommendedFoods: ['Chickpeas', 'Lentils', 'Kidney beans'],
+      portionProgression: ['1/4 cup', '1/2 cup', '3/4 cup'],
     },
     [FODMAPGroup.POLYOLS]: {
       fodmapGroup: FODMAPGroup.POLYOLS,
       testDuration: 3,
       washoutPeriod: 3,
-      recommendedFoods: ["Avocado", "Mushrooms", "Cauliflower"],
-      portionProgression: ["1/4 cup", "1/2 cup", "1 cup"],
+      recommendedFoods: ['Avocado', 'Mushrooms', 'Cauliflower'],
+      portionProgression: ['1/4 cup', '1/2 cup', '1 cup'],
     },
   };
 
@@ -119,9 +116,7 @@ export class ReintroductionEngine {
       group,
       tolerated: maxToleratedIndex >= 0,
       maxToleratedPortion:
-        maxToleratedIndex >= 0
-          ? protocol.portionProgression[maxToleratedIndex]
-          : undefined,
+        maxToleratedIndex >= 0 ? protocol.portionProgression[maxToleratedIndex] : undefined,
     };
   }
 
@@ -148,10 +143,7 @@ export class ReintroductionEngine {
   /**
    * Sugere a próxima porção baseada no dia do teste
    */
-  static getSuggestedPortion(
-    group: FODMAPGroup,
-    dayNumber: number
-  ): string | null {
+  static getSuggestedPortion(group: FODMAPGroup, dayNumber: number): string | null {
     const protocol = this.getProtocol(group);
 
     if (dayNumber < 1 || dayNumber > protocol.testDuration) {
@@ -173,12 +165,12 @@ export class ReintroductionEngine {
 
     // Valida dia do teste
     if (test.dayNumber < 1) {
-      errors.push("Day number must be at least 1");
+      errors.push('Day number must be at least 1');
     }
 
     // Valida se está na fase correta
     if (test.phase !== TestPhase.REINTRODUCTION) {
-      errors.push("Test must be in reintroduction phase");
+      errors.push('Test must be in reintroduction phase');
     }
 
     // Valida se o alimento está na lista recomendada
@@ -187,9 +179,7 @@ export class ReintroductionEngine {
     );
 
     if (!isRecommendedFood) {
-      errors.push(
-        `Food item should be one of: ${protocol.recommendedFoods.join(", ")}`
-      );
+      errors.push(`Food item should be one of: ${protocol.recommendedFoods.join(', ')}`);
     }
 
     return {
@@ -221,13 +211,9 @@ export class ReintroductionEngine {
       const tolerance = this.determineTolerance(tests);
 
       if (tolerance?.tolerated) {
-        recommendations.push(
-          `You can tolerate ${group} up to ${tolerance.maxToleratedPortion}`
-        );
+        recommendations.push(`You can tolerate ${group} up to ${tolerance.maxToleratedPortion}`);
       } else {
-        recommendations.push(
-          `Consider avoiding ${group} or consulting with a dietitian`
-        );
+        recommendations.push(`Consider avoiding ${group} or consulting with a dietitian`);
       }
     });
 

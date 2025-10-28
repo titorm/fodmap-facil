@@ -1,8 +1,8 @@
-import { drizzle } from "drizzle-orm/expo-sqlite";
-import { openDatabaseSync } from "expo-sqlite/next";
-import * as schema from "./schema";
+import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { openDatabaseSync } from 'expo-sqlite/next';
+import * as schema from './schema';
 
-const expoDb = openDatabaseSync("fodmap.db");
+const expoDb = openDatabaseSync('fodmap.db');
 
 export const db = drizzle(expoDb, { schema });
 
@@ -12,5 +12,5 @@ export const db = drizzle(expoDb, { schema });
 export async function initDatabase() {
   // As tabelas são criadas automaticamente pelo Drizzle
   // Aqui você pode adicionar migrações se necessário
-  console.log("Database initialized");
+  console.log('Database initialized');
 }
