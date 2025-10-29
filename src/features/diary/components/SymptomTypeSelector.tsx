@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
 import { useTheme } from '../../../shared/theme';
-import type { SymptomType } from '../../../db/schema';
+import type { SymptomType } from '../../../shared/types/entities';
 
 export type ExtendedSymptomType = SymptomType | 'nausea' | 'other';
 

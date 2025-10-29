@@ -14,7 +14,7 @@ import { useSymptomEntries, useDeleteSymptomEntry } from '../../../shared/hooks/
 import { QuickSymptomEntryModal } from '../components/QuickSymptomEntryModal';
 import { SymptomEntryCard } from '../components/SymptomEntryCard';
 import { DiaryEmptyState } from '../components/DiaryEmptyState';
-import type { SymptomEntry, SymptomType } from '../../../db/schema';
+import type { SymptomEntry, SymptomType } from '../../../shared/types/entities';
 
 interface GroupedSymptomEntry {
   title: string;

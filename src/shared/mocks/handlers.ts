@@ -3,159 +3,149 @@ import { mockReintroductionTests, mockUser } from '../fixtures/reintroductionTes
 
 /**
  * Mock Service Worker handlers para testes
- * Simula respostas da API Supabase
+ * Simula respostas da API Appwrite
  */
 
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co';
+const APPWRITE_ENDPOINT =
+  process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
 
 export const handlers = [
-  // Auth - Sign In
-  http.post(`${SUPABASE_URL}/auth/v1/token`, async ({ request }) => {
+  // Auth - Create Session (Sign In)
+  http.post(`${APPWRITE_ENDPOINT}/account/sessions/email`, async ({ request }) => {
     const body = await request.json();
 
     if (body.email === 'test@example.com' && body.password === 'password123') {
       return HttpResponse.json({
-        access_token: 'mock-access-token',
-        token_type: 'bearer',
-        expires_in: 3600,
-        refresh_token: 'mock-refresh-token',
-        user: mockUser,
+        $id: 'mock-session-id',
+        userId: mockUser.$id,
+        expire: new Date(Date.now() + 3600000).toISOString(),
+        provider: 'email',
+        providerUid: body.email,
+        current: true,
       });
     }
 
-    return HttpResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    return HttpResponse.json({ message: 'Invalid credentials' }, { status: 401 });
   }),
 
-  // Auth - Sign Up
-  http.post(`${SUPABASE_URL}/auth/v1/signup`, async ({ request }) => {
+  // Auth - Create Account (Sign Up)
+  http.post(`${APPWRITE_ENDPOINT}/account`, async ({ request }) => {
     const body = await request.json();
 
     return HttpResponse.json({
-      access_token: 'mock-access-token',
-      token_type: 'bearer',
-      expires_in: 3600,
-      refresh_token: 'mock-refresh-token',
-      user: {
-        id: 'new-user-id',
-        email: body.email,
-        created_at: new Date().toISOString(),
-      },
+      $id: 'new-user-id',
+      email: body.email,
+      name: body.name || '',
+      $createdAt: new Date().toISOString(),
+      $updatedAt: new Date().toISOString(),
     });
   }),
 
-  // Auth - Sign Out
-  http.post(`${SUPABASE_URL}/auth/v1/logout`, () => {
-    return HttpResponse.json({ success: true });
+  // Auth - Delete Session (Sign Out)
+  http.delete(`${APPWRITE_ENDPOINT}/account/sessions/current`, () => {
+    return HttpResponse.json({}, { status: 204 });
   }),
 
-  // Auth - Get Session
-  http.get(`${SUPABASE_URL}/auth/v1/user`, () => {
+  // Auth - Get Account
+  http.get(`${APPWRITE_ENDPOINT}/account`, () => {
     return HttpResponse.json(mockUser);
   }),
 
-  // Reintroduction Tests - List
-  http.get(`${SUPABASE_URL}/rest/v1/reintroduction_tests`, ({ request }) => {
+  // TablesDB - List Rows (Tests)
+  http.get(`${APPWRITE_ENDPOINT}/databases/:databaseId/tables/:tableId/rows`, ({ request }) => {
     const url = new URL(request.url);
-    const userId = url.searchParams.get('user_id');
+    const queries = url.searchParams.get('queries');
 
-    if (userId) {
-      const userTests = mockReintroductionTests.filter((test) => test.userId === userId);
-      return HttpResponse.json(userTests);
-    }
+    if (queries) {
+      try {
+        const parsedQueries = JSON.parse(queries);
+        const userIdQuery = parsedQueries.find((q: string) => q.includes('userId'));
 
-    return HttpResponse.json(mockReintroductionTests);
-  }),
-
-  // Reintroduction Tests - Get by ID
-  http.get(`${SUPABASE_URL}/rest/v1/reintroduction_tests`, ({ request }) => {
-    const url = new URL(request.url);
-    const id = url.searchParams.get('id');
-
-    if (id) {
-      const test = mockReintroductionTests.find((t) => t.id === id);
-      if (test) {
-        return HttpResponse.json([test]);
+        if (userIdQuery) {
+          const userId = userIdQuery.match(/equal\("userId",\s*\["([^"]+)"\]\)/)?.[1];
+          if (userId) {
+            const userTests = mockReintroductionTests.filter((test) => test.userId === userId);
+            return HttpResponse.json({ rows: userTests, total: userTests.length });
+          }
+        }
+      } catch (e) {
+        // Ignore parse errors
       }
-      return HttpResponse.json([], { status: 404 });
     }
 
-    return HttpResponse.json(mockReintroductionTests);
+    return HttpResponse.json({
+      rows: mockReintroductionTests,
+      total: mockReintroductionTests.length,
+    });
   }),
 
-  // Reintroduction Tests - Create
-  http.post(`${SUPABASE_URL}/rest/v1/reintroduction_tests`, async ({ request }) => {
-    const body = await request.json();
+  // TablesDB - Get Row (Test by ID)
+  http.get(
+    `${APPWRITE_ENDPOINT}/databases/:databaseId/tables/:tableId/rows/:rowId`,
+    ({ params }) => {
+      const { rowId } = params;
+      const test = mockReintroductionTests.find((t) => t.id === rowId);
 
-    const newTest = {
-      id: `test-${Date.now()}`,
-      ...body,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+      if (test) {
+        return HttpResponse.json(test);
+      }
 
-    return HttpResponse.json([newTest], { status: 201 });
-  }),
+      return HttpResponse.json({ message: 'Row not found' }, { status: 404 });
+    }
+  ),
 
-  // Reintroduction Tests - Update
-  http.patch(`${SUPABASE_URL}/rest/v1/reintroduction_tests`, async ({ request }) => {
-    const url = new URL(request.url);
-    const id = url.searchParams.get('id');
-    const body = await request.json();
+  // TablesDB - Create Row (Test)
+  http.post(
+    `${APPWRITE_ENDPOINT}/databases/:databaseId/tables/:tableId/rows`,
+    async ({ request }) => {
+      const body = await request.json();
 
-    if (id) {
-      const test = mockReintroductionTests.find((t) => t.id === id);
+      const newTest = {
+        $id: body.rowId || `test-${Date.now()}`,
+        ...body.data,
+        $createdAt: new Date().toISOString(),
+        $updatedAt: new Date().toISOString(),
+      };
+
+      return HttpResponse.json(newTest, { status: 201 });
+    }
+  ),
+
+  // TablesDB - Update Row (Test)
+  http.patch(
+    `${APPWRITE_ENDPOINT}/databases/:databaseId/tables/:tableId/rows/:rowId`,
+    async ({ request, params }) => {
+      const { rowId } = params;
+      const body = await request.json();
+      const test = mockReintroductionTests.find((t) => t.id === rowId);
+
       if (test) {
         const updatedTest = {
           ...test,
-          ...body,
-          updatedAt: new Date().toISOString(),
+          ...body.data,
+          $updatedAt: new Date().toISOString(),
         };
-        return HttpResponse.json([updatedTest]);
+        return HttpResponse.json(updatedTest);
       }
+
+      return HttpResponse.json({ message: 'Row not found' }, { status: 404 });
     }
+  ),
 
-    return HttpResponse.json([], { status: 404 });
-  }),
+  // TablesDB - Delete Row (Test)
+  http.delete(
+    `${APPWRITE_ENDPOINT}/databases/:databaseId/tables/:tableId/rows/:rowId`,
+    ({ params }) => {
+      const { rowId } = params;
+      const test = mockReintroductionTests.find((t) => t.id === rowId);
 
-  // Reintroduction Tests - Delete
-  http.delete(`${SUPABASE_URL}/rest/v1/reintroduction_tests`, ({ request }) => {
-    const url = new URL(request.url);
-    const id = url.searchParams.get('id');
-
-    if (id) {
-      return HttpResponse.json({ success: true }, { status: 204 });
-    }
-
-    return HttpResponse.json({ error: 'Not found' }, { status: 404 });
-  }),
-
-  // Symptoms - List
-  http.get(`${SUPABASE_URL}/rest/v1/symptoms`, ({ request }) => {
-    const url = new URL(request.url);
-    const testId = url.searchParams.get('test_id');
-
-    if (testId) {
-      const test = mockReintroductionTests.find((t) => t.id === testId);
       if (test) {
-        return HttpResponse.json(test.symptoms || []);
+        return HttpResponse.json({}, { status: 204 });
       }
+
+      return HttpResponse.json({ message: 'Row not found' }, { status: 404 });
     }
-
-    return HttpResponse.json([]);
-  }),
-
-  // Symptoms - Create
-  http.post(`${SUPABASE_URL}/rest/v1/symptoms`, async ({ request }) => {
-    const body = await request.json();
-
-    const newSymptom = {
-      id: `symptom-${Date.now()}`,
-      ...body,
-      createdAt: new Date().toISOString(),
-    };
-
-    return HttpResponse.json([newSymptom], { status: 201 });
-  }),
+  ),
 ];
 
 /**
@@ -163,17 +153,17 @@ export const handlers = [
  */
 export const errorHandlers = [
   // Network error
-  http.get(`${SUPABASE_URL}/rest/v1/reintroduction_tests`, () => {
+  http.get(`${APPWRITE_ENDPOINT}/databases/:databaseId/tables/:tableId/rows`, () => {
     return HttpResponse.error();
   }),
 
   // Server error
-  http.post(`${SUPABASE_URL}/rest/v1/reintroduction_tests`, () => {
-    return HttpResponse.json({ error: 'Internal server error' }, { status: 500 });
+  http.post(`${APPWRITE_ENDPOINT}/databases/:databaseId/tables/:tableId/rows`, () => {
+    return HttpResponse.json({ message: 'Internal server error' }, { status: 500 });
   }),
 
   // Unauthorized
-  http.get(`${SUPABASE_URL}/auth/v1/user`, () => {
-    return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  http.get(`${APPWRITE_ENDPOINT}/account`, () => {
+    return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }),
 ];

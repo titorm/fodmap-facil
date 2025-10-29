@@ -1,28 +1,33 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../lib/queryClient';
-import { ProtocolRunRepository } from '../../services/repositories';
-import { db } from '../../infrastructure/database/client';
-import type { ProtocolRun, CreateProtocolRunInput, UpdateProtocolRunInput } from '../../db/schema';
-
-// Create repository instance
-const protocolRunRepository = new ProtocolRunRepository(db);
+import { tablesDB, DATABASE_ID, TABLES, Query, ID } from '../../infrastructure/api/appwrite';
+import type {
+  ProtocolRun,
+  CreateProtocolRunInput,
+  UpdateProtocolRunInput,
+} from '../types/entities';
 
 /**
  * Hook to fetch all protocol runs for a specific user
- *
- * @param userId - The user ID to fetch protocol runs for
- * @returns Query result with array of protocol runs, loading state, and error
- *
- * @example
- * ```tsx
- * const { data: protocolRuns, isLoading, error } = useProtocolRuns(userId);
- * ```
  */
 export function useProtocolRuns(userId: string) {
   return useQuery({
     queryKey: queryKeys.protocolRuns.byUserId(userId),
     queryFn: async (): Promise<ProtocolRun[]> => {
-      return await protocolRunRepository.findByUserId(userId);
+      const { rows } = await tablesDB.listRows({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.PROTOCOL_RUNS,
+        queries: [Query.equal('userId', [userId]), Query.orderDesc('createdAt')],
+      });
+
+      return rows.map((row) => ({
+        ...row,
+        startDate: new Date(row.startDate),
+        endDate: row.endDate ? new Date(row.endDate) : undefined,
+        createdAt: new Date(row.createdAt),
+        updatedAt: new Date(row.updatedAt),
+        lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
+      })) as ProtocolRun[];
     },
     enabled: !!userId,
   });
@@ -30,20 +35,29 @@ export function useProtocolRuns(userId: string) {
 
 /**
  * Hook to fetch a single protocol run by ID
- *
- * @param id - The protocol run ID to fetch
- * @returns Query result with protocol run data, loading state, and error
- *
- * @example
- * ```tsx
- * const { data: protocolRun, isLoading, error } = useProtocolRun(protocolRunId);
- * ```
  */
 export function useProtocolRun(id: string) {
   return useQuery({
     queryKey: queryKeys.protocolRuns.byId(id),
     queryFn: async (): Promise<ProtocolRun | null> => {
-      return await protocolRunRepository.findById(id);
+      try {
+        const row = await tablesDB.getRow({
+          databaseId: DATABASE_ID,
+          tableId: TABLES.PROTOCOL_RUNS,
+          rowId: id,
+        });
+
+        return {
+          ...row,
+          startDate: new Date(row.startDate),
+          endDate: row.endDate ? new Date(row.endDate) : undefined,
+          createdAt: new Date(row.createdAt),
+          updatedAt: new Date(row.updatedAt),
+          lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
+        } as ProtocolRun;
+      } catch {
+        return null;
+      }
     },
     enabled: !!id,
   });
@@ -51,20 +65,32 @@ export function useProtocolRun(id: string) {
 
 /**
  * Hook to fetch the active protocol run for a specific user
- *
- * @param userId - The user ID to fetch the active protocol run for
- * @returns Query result with active protocol run data, loading state, and error
- *
- * @example
- * ```tsx
- * const { data: activeProtocolRun, isLoading, error } = useActiveProtocolRun(userId);
- * ```
  */
 export function useActiveProtocolRun(userId: string) {
   return useQuery({
     queryKey: queryKeys.protocolRuns.active(userId),
     queryFn: async (): Promise<ProtocolRun | null> => {
-      return await protocolRunRepository.findActive(userId);
+      const { rows } = await tablesDB.listRows({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.PROTOCOL_RUNS,
+        queries: [
+          Query.equal('userId', [userId]),
+          Query.equal('status', ['active']),
+          Query.limit(1),
+        ],
+      });
+
+      if (rows.length === 0) return null;
+
+      const row = rows[0];
+      return {
+        ...row,
+        startDate: new Date(row.startDate),
+        endDate: row.endDate ? new Date(row.endDate) : undefined,
+        createdAt: new Date(row.createdAt),
+        updatedAt: new Date(row.updatedAt),
+        lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
+      } as ProtocolRun;
     },
     enabled: !!userId,
   });
@@ -72,37 +98,47 @@ export function useActiveProtocolRun(userId: string) {
 
 /**
  * Hook to create a new protocol run
- *
- * @returns Mutation result with mutate function, loading state, and error
- *
- * @example
- * ```tsx
- * const createMutation = useCreateProtocolRun();
- * await createMutation.mutateAsync({
- *   userId: 'user-123',
- *   status: 'planned',
- *   startDate: new Date(),
- *   notes: 'Starting FODMAP reintroduction'
- * });
- * ```
  */
 export function useCreateProtocolRun() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: CreateProtocolRunInput): Promise<ProtocolRun> => {
-      return await protocolRunRepository.create(data);
+      const { id, ...rest } = data;
+
+      const rowData = {
+        ...rest,
+        startDate: data.startDate.toISOString(),
+        endDate: data.endDate?.toISOString(),
+        createdAt: data.createdAt.toISOString(),
+        updatedAt: data.updatedAt.toISOString(),
+        lastSyncAttempt: data.lastSyncAttempt?.toISOString(),
+        syncStatus: data.syncStatus || 'pending',
+      };
+
+      const row = await tablesDB.createRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.PROTOCOL_RUNS,
+        rowId: id || ID.unique(),
+        data: rowData,
+      });
+
+      return {
+        ...row,
+        startDate: new Date(row.startDate),
+        endDate: row.endDate ? new Date(row.endDate) : undefined,
+        createdAt: new Date(row.createdAt),
+        updatedAt: new Date(row.updatedAt),
+        lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
+      } as ProtocolRun;
     },
     onSuccess: (newProtocolRun) => {
-      // Invalidate and refetch related queries
       queryClient.invalidateQueries({
         queryKey: queryKeys.protocolRuns.byUserId(newProtocolRun.userId),
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.protocolRuns.active(newProtocolRun.userId),
       });
-
-      // Set the new protocol run in cache
       queryClient.setQueryData(queryKeys.protocolRuns.byId(newProtocolRun.id), newProtocolRun);
     },
   });
@@ -110,17 +146,6 @@ export function useCreateProtocolRun() {
 
 /**
  * Hook to update an existing protocol run
- *
- * @returns Mutation result with mutate function, loading state, and error
- *
- * @example
- * ```tsx
- * const updateMutation = useUpdateProtocolRun();
- * await updateMutation.mutateAsync({
- *   id: 'protocol-123',
- *   data: { status: 'active' }
- * });
- * ```
  */
 export function useUpdateProtocolRun() {
   const queryClient = useQueryClient();
@@ -133,75 +158,59 @@ export function useUpdateProtocolRun() {
       id: string;
       data: UpdateProtocolRunInput;
     }): Promise<ProtocolRun> => {
-      return await protocolRunRepository.update(id, data);
+      const rowData: any = { ...data };
+      if (data.endDate) rowData.endDate = data.endDate.toISOString();
+      if (data.updatedAt) rowData.updatedAt = data.updatedAt.toISOString();
+      if (data.lastSyncAttempt) rowData.lastSyncAttempt = data.lastSyncAttempt.toISOString();
+
+      const row = await tablesDB.updateRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.PROTOCOL_RUNS,
+        rowId: id,
+        data: rowData,
+      });
+
+      return {
+        ...row,
+        startDate: new Date(row.startDate),
+        endDate: row.endDate ? new Date(row.endDate) : undefined,
+        createdAt: new Date(row.createdAt),
+        updatedAt: new Date(row.updatedAt),
+        lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
+      } as ProtocolRun;
     },
-    onMutate: async ({ id, data }) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: queryKeys.protocolRuns.byId(id) });
-
-      // Snapshot previous value
-      const previousProtocolRun = queryClient.getQueryData<ProtocolRun>(
-        queryKeys.protocolRuns.byId(id)
-      );
-
-      // Optimistically update
-      if (previousProtocolRun) {
-        queryClient.setQueryData(queryKeys.protocolRuns.byId(id), {
-          ...previousProtocolRun,
-          ...data,
-          updatedAt: new Date(),
-        });
-      }
-
-      return { previousProtocolRun };
-    },
-    onError: (err, { id }, context) => {
-      // Rollback on error
-      if (context?.previousProtocolRun) {
-        queryClient.setQueryData(queryKeys.protocolRuns.byId(id), context.previousProtocolRun);
-      }
-    },
-    onSettled: (data, error, { id }) => {
-      // Refetch after mutation
-      queryClient.invalidateQueries({ queryKey: queryKeys.protocolRuns.byId(id) });
-
-      // Also invalidate user's protocol runs and active protocol run
-      if (data) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.protocolRuns.byUserId(data.userId) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.protocolRuns.active(data.userId) });
-      }
+    onSuccess: (updatedProtocolRun, { id }) => {
+      queryClient.setQueryData(queryKeys.protocolRuns.byId(id), updatedProtocolRun);
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.protocolRuns.byUserId(updatedProtocolRun.userId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.protocolRuns.active(updatedProtocolRun.userId),
+      });
     },
   });
 }
 
 /**
  * Hook to delete a protocol run
- *
- * @returns Mutation result with mutate function, loading state, and error
- *
- * @example
- * ```tsx
- * const deleteMutation = useDeleteProtocolRun();
- * await deleteMutation.mutateAsync('protocol-123');
- * ```
  */
 export function useDeleteProtocolRun() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      return await protocolRunRepository.delete(id);
+      await tablesDB.deleteRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.PROTOCOL_RUNS,
+        rowId: id,
+      });
     },
     onMutate: async (id) => {
-      // Get the protocol run before deletion to know which user's cache to invalidate
       const protocolRun = queryClient.getQueryData<ProtocolRun>(queryKeys.protocolRuns.byId(id));
       return { protocolRun };
     },
     onSuccess: (_, id, context) => {
-      // Remove from cache
       queryClient.removeQueries({ queryKey: queryKeys.protocolRuns.byId(id) });
-
-      // Invalidate related queries
       if (context?.protocolRun) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.protocolRuns.byUserId(context.protocolRun.userId),
@@ -210,8 +219,6 @@ export function useDeleteProtocolRun() {
           queryKey: queryKeys.protocolRuns.active(context.protocolRun.userId),
         });
       }
-
-      // Invalidate all protocol runs
       queryClient.invalidateQueries({ queryKey: queryKeys.protocolRuns.all });
     },
   });

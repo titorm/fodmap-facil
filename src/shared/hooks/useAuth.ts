@@ -1,47 +1,59 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../infrastructure/api/supabase';
-import { User } from '@supabase/supabase-js';
+import { account } from '../../infrastructure/api/appwrite';
+import { Models } from 'react-native-appwrite';
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Verifica sessão atual
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Escuta mudanças de autenticação
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
+    checkSession();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { data, error };
+  const checkSession = async () => {
+    try {
+      const currentUser = await account.get();
+      setUser(currentUser);
+    } catch (error) {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const signUp = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    return { data, error };
+  const signIn = async (email: string, password: string) => {
+    try {
+      await account.createEmailPasswordSession(email, password);
+      const currentUser = await account.get();
+      setUser(currentUser);
+      return { data: currentUser, error: null };
+    } catch (error: any) {
+      return { data: null, error };
+    }
+  };
+
+  const signUp = async (email: string, password: string, name?: string) => {
+    try {
+      const newUser = await account.create('unique()', email, password, name);
+      // Após criar, faz login automaticamente
+      await account.createEmailPasswordSession(email, password);
+      const currentUser = await account.get();
+      setUser(currentUser);
+      return { data: newUser, error: null };
+    } catch (error: any) {
+      return { data: null, error };
+    }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    try {
+      await account.deleteSession('current');
+      setUser(null);
+      return { error: null };
+    } catch (error: any) {
+      return { error };
+    }
   };
 
   return {

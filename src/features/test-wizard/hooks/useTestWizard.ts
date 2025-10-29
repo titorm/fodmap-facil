@@ -1,20 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../../lib/queryClient';
-import {
-  TestStepRepository,
-  SymptomEntryRepository,
-  FoodItemRepository,
-} from '../../../services/repositories';
-import { db } from '../../../infrastructure/database/client';
-import { SyncQueue } from '../../../services/SyncQueue';
-import type { TestStep, SymptomEntry, FoodItem } from '../../../db/schema';
+import { tablesDB, DATABASE_ID, TABLES, ID } from '../../../infrastructure/api/appwrite';
+import type { TestStep, SymptomEntry, FoodItem } from '../../../shared/types/entities';
 import type { SymptomRecord } from '../../../engine/fodmapEngine/types';
-
-// Create repository instances
-const testStepRepository = new TestStepRepository(db);
-const symptomEntryRepository = new SymptomEntryRepository(db);
-const foodItemRepository = new FoodItemRepository(db);
 
 export interface UseTestWizardReturn {
   // Current test state
@@ -45,16 +34,6 @@ export interface DoseInfo {
 
 /**
  * Hook to manage test wizard flow and state
- *
- * Handles:
- * - Loading current test state from database
- * - Validating day progression (24-hour wait between days)
- * - Confirming consumption
- * - Completing days with symptom integration
- * - Canceling tests
- *
- * @param testStepId - The ID of the test step to manage
- * @returns Test wizard state and actions
  */
 export function useTestWizard(testStepId: string): UseTestWizardReturn {
   const queryClient = useQueryClient();
@@ -68,7 +47,24 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
   } = useQuery({
     queryKey: queryKeys.testSteps.byId(testStepId),
     queryFn: async () => {
-      return await testStepRepository.findById(testStepId);
+      try {
+        const row = await tablesDB.getRow({
+          databaseId: DATABASE_ID,
+          tableId: TABLES.TEST_STEPS,
+          rowId: testStepId,
+        });
+
+        return {
+          ...row,
+          scheduledDate: new Date(row.scheduledDate),
+          completedDate: row.completedDate ? new Date(row.completedDate) : undefined,
+          createdAt: new Date(row.createdAt),
+          updatedAt: new Date(row.updatedAt),
+          lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
+        } as unknown as TestStep;
+      } catch {
+        return null;
+      }
     },
     enabled: !!testStepId,
   });
@@ -78,7 +74,22 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
     queryKey: ['foodItems', testStep?.foodItemId],
     queryFn: async () => {
       if (!testStep?.foodItemId) return null;
-      return await foodItemRepository.findById(testStep.foodItemId);
+
+      try {
+        const row = await tablesDB.getRow({
+          databaseId: DATABASE_ID,
+          tableId: TABLES.FOOD_ITEMS,
+          rowId: testStep.foodItemId,
+        });
+
+        return {
+          ...row,
+          createdAt: new Date(row.createdAt),
+          updatedAt: new Date(row.updatedAt),
+        } as unknown as FoodItem;
+      } catch {
+        return null;
+      }
     },
     enabled: !!testStep?.foodItemId,
   });
@@ -87,7 +98,21 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
   const { data: symptoms = [], isLoading: isLoadingSymptoms } = useQuery({
     queryKey: queryKeys.symptomEntries.byTestStepId(testStepId),
     queryFn: async () => {
-      return await symptomEntryRepository.findByTestStepId(testStepId);
+      const { rows } = await tablesDB.listRows({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.SYMPTOM_ENTRIES,
+        queries: [
+          // Query.equal('testStepId', [testStepId]),
+          // Query.orderDesc('timestamp'),
+        ],
+      });
+
+      return rows.map((row) => ({
+        ...row,
+        timestamp: new Date(row.timestamp),
+        createdAt: new Date(row.createdAt),
+        lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
+      })) as unknown as SymptomEntry[];
     },
     enabled: !!testStepId,
   });
@@ -96,8 +121,6 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
   useEffect(() => {
     if (!testStep || !foodItem) return;
 
-    // Parse notes to extract dose information
-    // Format: JSON array of dose records
     const doseInfo: DoseInfo[] = [];
 
     try {
@@ -122,8 +145,7 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
           symptoms: daySymptoms,
         });
       }
-    } catch (error) {
-      // If notes parsing fails, initialize with default structure
+    } catch {
       for (let day = 1; day <= 3; day++) {
         doseInfo.push({
           dayNumber: day,
@@ -166,7 +188,6 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
     mutationFn: async () => {
       if (!testStep) throw new Error('Test step not found');
 
-      // Update doses in notes
       const updatedDoses = doses.map((d) =>
         d.dayNumber === currentDay ? { ...d, consumed: true, consumedAt: new Date() } : d
       );
@@ -180,24 +201,26 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
         })),
       });
 
-      // Update test step status if starting first day
       const status = currentDay === 1 ? 'in_progress' : testStep.status;
 
-      const updatedTestStep = await testStepRepository.update(testStep.id, {
-        status,
-        notes,
-        updatedAt: new Date(),
+      const row = await tablesDB.updateRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.TEST_STEPS,
+        rowId: testStep.id,
+        data: {
+          status,
+          notes,
+          updatedAt: new Date().toISOString(),
+        },
       });
 
-      // Queue for sync
-      await SyncQueue.enqueue({
-        type: 'test_step',
-        entityId: testStep.id,
-        operation: 'update',
-        data: updatedTestStep,
-      });
-
-      return updatedTestStep;
+      return {
+        ...row,
+        scheduledDate: new Date(row.scheduledDate),
+        completedDate: row.completedDate ? new Date(row.completedDate) : undefined,
+        createdAt: new Date(row.createdAt),
+        updatedAt: new Date(row.updatedAt),
+      } as unknown as TestStep;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.testSteps.byId(testStepId) });
@@ -211,32 +234,43 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
 
       // Save symptoms to database
       for (const symptom of symptoms) {
-        await symptomEntryRepository.create({
-          testStepId: testStep.id,
-          symptomType: symptom.type as any,
-          severity: mapSeverityToNumber(symptom.severity),
-          timestamp: new Date(symptom.timestamp),
-          notes: symptom.notes,
+        const now = new Date();
+        await tablesDB.createRow({
+          databaseId: DATABASE_ID,
+          tableId: TABLES.SYMPTOM_ENTRIES,
+          rowId: ID.unique(),
+          data: {
+            testStepId: testStep.id,
+            symptomType: symptom.type,
+            severity: mapSeverityToNumber(symptom.severity),
+            timestamp: new Date(symptom.timestamp).toISOString(),
+            notes: symptom.notes,
+            createdAt: now.toISOString(),
+            syncStatus: 'synced',
+          },
         });
       }
 
       // If this is day 3, mark test as completed
       if (currentDay === 3) {
-        const updatedTestStep = await testStepRepository.update(testStep.id, {
-          status: 'completed',
-          completedDate: new Date(),
-          updatedAt: new Date(),
+        const row = await tablesDB.updateRow({
+          databaseId: DATABASE_ID,
+          tableId: TABLES.TEST_STEPS,
+          rowId: testStep.id,
+          data: {
+            status: 'completed',
+            completedDate: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
         });
 
-        // Queue for sync
-        await SyncQueue.enqueue({
-          type: 'test_step',
-          entityId: testStep.id,
-          operation: 'update',
-          data: updatedTestStep,
-        });
-
-        return updatedTestStep;
+        return {
+          ...row,
+          scheduledDate: new Date(row.scheduledDate),
+          completedDate: row.completedDate ? new Date(row.completedDate) : undefined,
+          createdAt: new Date(row.createdAt),
+          updatedAt: new Date(row.updatedAt),
+        } as unknown as TestStep;
       }
 
       return testStep;
@@ -254,20 +288,23 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
     mutationFn: async () => {
       if (!testStep) throw new Error('Test step not found');
 
-      const updatedTestStep = await testStepRepository.update(testStep.id, {
-        status: 'skipped',
-        updatedAt: new Date(),
+      const row = await tablesDB.updateRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.TEST_STEPS,
+        rowId: testStep.id,
+        data: {
+          status: 'skipped',
+          updatedAt: new Date().toISOString(),
+        },
       });
 
-      // Queue for sync
-      await SyncQueue.enqueue({
-        type: 'test_step',
-        entityId: testStep.id,
-        operation: 'update',
-        data: updatedTestStep,
-      });
-
-      return updatedTestStep;
+      return {
+        ...row,
+        scheduledDate: new Date(row.scheduledDate),
+        completedDate: row.completedDate ? new Date(row.completedDate) : undefined,
+        createdAt: new Date(row.createdAt),
+        updatedAt: new Date(row.updatedAt),
+      } as unknown as TestStep;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.testSteps.byId(testStepId) });
@@ -295,12 +332,6 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
   };
 }
 
-/**
- * Get portion size for a specific day based on FODMAP group
- * Day 1: Small portion
- * Day 2: Medium portion
- * Day 3: Large portion
- */
 function getPortionSizeForDay(fodmapGroup: string, day: number): string {
   const portionSizes: Record<string, string[]> = {
     oligosaccharides: ['1/4 cup', '1/2 cup', '1 cup'],
@@ -313,9 +344,6 @@ function getPortionSizeForDay(fodmapGroup: string, day: number): string {
   return sizes[day - 1] || sizes[0];
 }
 
-/**
- * Map symptom severity string to number (1-10 scale)
- */
 function mapSeverityToNumber(severity: string): number {
   const severityMap: Record<string, number> = {
     none: 0,

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
 import { Card } from '../../../shared/components/atoms';
 import { useTheme } from '../../../shared/theme';
-import type { SymptomEntry, SymptomType } from '../../../db/schema';
+import type { SymptomEntry, SymptomType } from '../../../shared/types/entities';
 
 export interface SymptomEntryCardProps {
   entry: SymptomEntry;

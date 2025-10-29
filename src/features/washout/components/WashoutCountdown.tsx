@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { useTheme } from '../../../shared/theme';
-import type { WashoutPeriodStatus } from '../../../db/schema';
+import type { WashoutPeriodStatus } from '../../../shared/types/entities';
 
 export interface WashoutCountdownProps {
   startDate: Date;

@@ -1,28 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../lib/queryClient';
-import { SymptomEntryRepository } from '../../services/repositories';
-import { db } from '../../infrastructure/database/client';
-import type { SymptomEntry, CreateSymptomEntryInput } from '../../db/schema';
-
-// Create repository instance
-const symptomEntryRepository = new SymptomEntryRepository(db);
+import { tablesDB, DATABASE_ID, TABLES, Query, ID } from '../../infrastructure/api/appwrite';
+import type { SymptomEntry, CreateSymptomEntryInput } from '../types/entities';
 
 /**
  * Hook to fetch all symptom entries for a specific test step
- *
- * @param testStepId - The test step ID to fetch symptom entries for
- * @returns Query result with array of symptom entries, loading state, and error
- *
- * @example
- * ```tsx
- * const { data: symptomEntries, isLoading, error } = useSymptomEntries(testStepId);
- * ```
  */
 export function useSymptomEntries(testStepId: string) {
   return useQuery({
     queryKey: queryKeys.symptomEntries.byTestStepId(testStepId),
     queryFn: async (): Promise<SymptomEntry[]> => {
-      return await symptomEntryRepository.findByTestStepId(testStepId);
+      const { rows } = await tablesDB.listRows({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.SYMPTOM_ENTRIES,
+        queries: [Query.equal('testStepId', [testStepId]), Query.orderDesc('timestamp')],
+      });
+
+      return rows.map((row) => ({
+        ...row,
+        timestamp: new Date(row.timestamp),
+        createdAt: new Date(row.createdAt),
+        lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
+      })) as SymptomEntry[];
     },
     enabled: !!testStepId,
   });
@@ -30,20 +29,27 @@ export function useSymptomEntries(testStepId: string) {
 
 /**
  * Hook to fetch a single symptom entry by ID
- *
- * @param id - The symptom entry ID to fetch
- * @returns Query result with symptom entry data, loading state, and error
- *
- * @example
- * ```tsx
- * const { data: symptomEntry, isLoading, error } = useSymptomEntry(symptomEntryId);
- * ```
  */
 export function useSymptomEntry(id: string) {
   return useQuery({
     queryKey: queryKeys.symptomEntries.byId(id),
     queryFn: async (): Promise<SymptomEntry | null> => {
-      return await symptomEntryRepository.findById(id);
+      try {
+        const row = await tablesDB.getRow({
+          databaseId: DATABASE_ID,
+          tableId: TABLES.SYMPTOM_ENTRIES,
+          rowId: id,
+        });
+
+        return {
+          ...row,
+          timestamp: new Date(row.timestamp),
+          createdAt: new Date(row.createdAt),
+          lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
+        } as SymptomEntry;
+      } catch {
+        return null;
+      }
     },
     enabled: !!id,
   });
@@ -51,26 +57,28 @@ export function useSymptomEntry(id: string) {
 
 /**
  * Hook to fetch symptom entries within a date range for a specific test step
- *
- * @param testStepId - The test step ID to fetch symptom entries for
- * @param startDate - The start date of the range (inclusive)
- * @param endDate - The end date of the range (inclusive)
- * @returns Query result with array of symptom entries, loading state, and error
- *
- * @example
- * ```tsx
- * const { data: symptomEntries, isLoading, error } = useSymptomEntriesByDateRange(
- *   testStepId,
- *   new Date('2024-01-01'),
- *   new Date('2024-01-31')
- * );
- * ```
  */
 export function useSymptomEntriesByDateRange(testStepId: string, startDate: Date, endDate: Date) {
   return useQuery({
     queryKey: queryKeys.symptomEntries.byDateRange(testStepId, startDate, endDate),
     queryFn: async (): Promise<SymptomEntry[]> => {
-      return await symptomEntryRepository.findByDateRange(testStepId, startDate, endDate);
+      const { rows } = await tablesDB.listRows({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.SYMPTOM_ENTRIES,
+        queries: [
+          Query.equal('testStepId', [testStepId]),
+          Query.greaterThanEqual('timestamp', startDate.toISOString()),
+          Query.lessThanEqual('timestamp', endDate.toISOString()),
+          Query.orderDesc('timestamp'),
+        ],
+      });
+
+      return rows.map((row) => ({
+        ...row,
+        timestamp: new Date(row.timestamp),
+        createdAt: new Date(row.createdAt),
+        lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
+      })) as SymptomEntry[];
     },
     enabled: !!testStepId && !!startDate && !!endDate,
   });
@@ -78,38 +86,41 @@ export function useSymptomEntriesByDateRange(testStepId: string, startDate: Date
 
 /**
  * Hook to create a new symptom entry
- *
- * @returns Mutation result with mutate function, loading state, and error
- *
- * @example
- * ```tsx
- * const createMutation = useCreateSymptomEntry();
- * await createMutation.mutateAsync({
- *   testStepId: 'step-123',
- *   symptomType: 'bloating',
- *   severity: 7,
- *   timestamp: new Date(),
- *   notes: 'Felt bloated after lunch'
- * });
- * ```
  */
 export function useCreateSymptomEntry() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: CreateSymptomEntryInput): Promise<SymptomEntry> => {
-      return await symptomEntryRepository.create(data);
+      const { id, ...rest } = data;
+
+      const rowData = {
+        ...rest,
+        timestamp: data.timestamp.toISOString(),
+        createdAt: data.createdAt.toISOString(),
+        lastSyncAttempt: data.lastSyncAttempt?.toISOString(),
+        syncStatus: data.syncStatus || 'pending',
+      };
+
+      const row = await tablesDB.createRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.SYMPTOM_ENTRIES,
+        rowId: id || ID.unique(),
+        data: rowData,
+      });
+
+      return {
+        ...row,
+        timestamp: new Date(row.timestamp),
+        createdAt: new Date(row.createdAt),
+        lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
+      } as SymptomEntry;
     },
     onSuccess: (newSymptomEntry) => {
-      // Invalidate and refetch related queries
       queryClient.invalidateQueries({
         queryKey: queryKeys.symptomEntries.byTestStepId(newSymptomEntry.testStepId),
       });
-
-      // Set the new symptom entry in cache
       queryClient.setQueryData(queryKeys.symptomEntries.byId(newSymptomEntry.id), newSymptomEntry);
-
-      // Invalidate all symptom entries
       queryClient.invalidateQueries({ queryKey: queryKeys.symptomEntries.all });
     },
   });
@@ -117,41 +128,31 @@ export function useCreateSymptomEntry() {
 
 /**
  * Hook to delete a symptom entry
- *
- * @returns Mutation result with mutate function, loading state, and error
- *
- * @example
- * ```tsx
- * const deleteMutation = useDeleteSymptomEntry();
- * await deleteMutation.mutateAsync('symptom-123');
- * ```
  */
 export function useDeleteSymptomEntry() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      return await symptomEntryRepository.delete(id);
+      await tablesDB.deleteRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.SYMPTOM_ENTRIES,
+        rowId: id,
+      });
     },
     onMutate: async (id) => {
-      // Get the symptom entry before deletion to know which caches to invalidate
       const symptomEntry = queryClient.getQueryData<SymptomEntry>(
         queryKeys.symptomEntries.byId(id)
       );
       return { symptomEntry };
     },
     onSuccess: (_, id, context) => {
-      // Remove from cache
       queryClient.removeQueries({ queryKey: queryKeys.symptomEntries.byId(id) });
-
-      // Invalidate related queries
       if (context?.symptomEntry) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.symptomEntries.byTestStepId(context.symptomEntry.testStepId),
         });
       }
-
-      // Invalidate all symptom entries
       queryClient.invalidateQueries({ queryKey: queryKeys.symptomEntries.all });
     },
   });

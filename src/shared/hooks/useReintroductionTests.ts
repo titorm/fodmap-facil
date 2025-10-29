@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../../infrastructure/api/supabase';
+import { tablesDB, DATABASE_ID, TABLES, ID, Query } from '../../infrastructure/api/appwrite';
 import { ReintroductionTest } from '../../core/domain/entities/ReintroductionTest';
 
 /**
@@ -20,14 +20,12 @@ export function useReintroductionTests(userId: string) {
   return useQuery({
     queryKey: testQueryKeys.byUser(userId),
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('reintroduction_tests')
-        .select('*, symptoms(*)')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as ReintroductionTest[];
+      const { rows } = await tablesDB.listRows({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.TESTS,
+        queries: [Query.equal('userId', [userId]), Query.orderDesc('createdAt')],
+      });
+      return rows as unknown as ReintroductionTest[];
     },
     enabled: !!userId,
   });
@@ -40,14 +38,12 @@ export function useReintroductionTest(testId: string) {
   return useQuery({
     queryKey: testQueryKeys.byId(testId),
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('reintroduction_tests')
-        .select('*, symptoms(*)')
-        .eq('id', testId)
-        .single();
-
-      if (error) throw error;
-      return data as ReintroductionTest;
+      const row = await tablesDB.getRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.TESTS,
+        rowId: testId,
+      });
+      return row as unknown as ReintroductionTest;
     },
     enabled: !!testId,
   });
@@ -61,14 +57,17 @@ export function useCreateReintroductionTest() {
 
   return useMutation({
     mutationFn: async (test: Omit<ReintroductionTest, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const { data, error } = await supabase
-        .from('reintroduction_tests')
-        .insert(test)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as ReintroductionTest;
+      const row = await tablesDB.createRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.TESTS,
+        rowId: ID.unique(),
+        data: {
+          ...test,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      });
+      return row as unknown as ReintroductionTest;
     },
     onSuccess: (data) => {
       // Invalida cache de testes do usuário
@@ -87,15 +86,16 @@ export function useUpdateReintroductionTest() {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ReintroductionTest> }) => {
-      const { data, error } = await supabase
-        .from('reintroduction_tests')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as ReintroductionTest;
+      const row = await tablesDB.updateRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.TESTS,
+        rowId: id,
+        data: {
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+      return row as unknown as ReintroductionTest;
     },
     onSuccess: (data) => {
       // Atualiza cache do teste específico
@@ -117,9 +117,11 @@ export function useDeleteReintroductionTest() {
 
   return useMutation({
     mutationFn: async (testId: string) => {
-      const { error } = await supabase.from('reintroduction_tests').delete().eq('id', testId);
-
-      if (error) throw error;
+      await tablesDB.deleteRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.TESTS,
+        rowId: testId,
+      });
     },
     onSuccess: (_, testId) => {
       // Remove do cache
@@ -149,10 +151,17 @@ export function useAddSymptom() {
       notes?: string;
       timestamp: Date;
     }) => {
-      const { data, error } = await supabase.from('symptoms').insert(symptom).select().single();
-
-      if (error) throw error;
-      return data;
+      const row = await tablesDB.createRow({
+        databaseId: DATABASE_ID,
+        tableId: TABLES.SYMPTOMS,
+        rowId: ID.unique(),
+        data: {
+          ...symptom,
+          timestamp: symptom.timestamp.toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+      });
+      return row;
     },
     onSuccess: (_, variables) => {
       // Invalida cache do teste para recarregar com novo sintoma

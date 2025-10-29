@@ -319,7 +319,7 @@ console.log('Sync result:', result);
 
 ### Sync Queue Growing
 
-1. Check if Supabase sync is implemented (currently placeholder)
+1. Check if Appwrite sync is implemented and configured
 2. Verify network connectivity
 3. Check for sync errors in database
 4. Clear queue if needed: `await SyncQueue.clear()`
