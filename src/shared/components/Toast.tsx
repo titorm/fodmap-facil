@@ -188,11 +188,20 @@ export function ToastProvider({ children }: ToastProviderProps) {
             style={toastStyle}
             accessible={true}
             accessibilityRole="alert"
-            accessibilityLiveRegion="polite"
+            accessibilityLiveRegion={toast.type === 'error' ? 'assertive' : 'polite'}
+            accessibilityLabel={`${toast.type === 'success' ? 'Sucesso' : toast.type === 'error' ? 'Erro' : toast.type === 'warning' ? 'Aviso' : 'Informação'}: ${toast.message}`}
           >
-            <Text style={iconStyle}>{toastColors?.icon}</Text>
+            <Text style={iconStyle} accessible={false}>
+              {toastColors?.icon}
+            </Text>
             <View style={contentStyle}>
-              <Text style={messageStyle} allowFontScaling={true} maxFontSizeMultiplier={2}>
+              <Text
+                style={messageStyle}
+                allowFontScaling={true}
+                maxFontSizeMultiplier={2}
+                accessible={true}
+                accessibilityRole="text"
+              >
                 {toast.message}
               </Text>
             </View>
@@ -206,6 +215,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
                 accessible={true}
                 accessibilityRole="button"
                 accessibilityLabel={toast.action.label}
+                accessibilityHint="Toque para executar a ação"
               >
                 <Text style={actionTextStyle} allowFontScaling={true} maxFontSizeMultiplier={2}>
                   {toast.action.label}
