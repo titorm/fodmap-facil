@@ -8,6 +8,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { useTheme } from '../../theme';
+import { lightHaptic } from '../../utils/haptics';
 
 export interface ButtonProps {
   title: string;
@@ -17,6 +18,7 @@ export interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
+  hapticFeedback?: boolean;
   accessibilityLabel?: string;
   accessibilityHint?: string;
   testID?: string;
@@ -30,12 +32,20 @@ export const Button: React.FC<ButtonProps> = ({
   disabled = false,
   loading = false,
   fullWidth = false,
+  hapticFeedback = true,
   accessibilityLabel,
   accessibilityHint,
   testID,
 }) => {
   const { theme } = useTheme();
   const { colors, spacing, typography, borderRadius, accessibility } = theme;
+
+  const handlePress = () => {
+    if (hapticFeedback) {
+      lightHaptic();
+    }
+    onPress();
+  };
 
   const getButtonStyle = (): ViewStyle => {
     const base: ViewStyle = {
@@ -110,7 +120,7 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <TouchableOpacity
       style={getButtonStyle()}
-      onPress={onPress}
+      onPress={handlePress}
       disabled={disabled || loading}
       accessible={true}
       accessibilityRole={'button' as AccessibilityRole}
@@ -125,7 +135,9 @@ export const Button: React.FC<ButtonProps> = ({
           size="small"
         />
       ) : (
-        <Text style={getTextStyle()}>{title}</Text>
+        <Text style={getTextStyle()} allowFontScaling={true} maxFontSizeMultiplier={2}>
+          {title}
+        </Text>
       )}
     </TouchableOpacity>
   );

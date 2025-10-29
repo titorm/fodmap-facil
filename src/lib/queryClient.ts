@@ -98,6 +98,7 @@ export const queryKeys = {
         startDate.toISOString(),
         endDate.toISOString(),
       ] as const,
+    recent: ['symptomEntries', 'recent'] as const,
   },
 
   /**

@@ -15,6 +15,23 @@
   "onboarding": {
     "welcome": "Bem-vindo ao FODMAP Fácil",
     "getStarted": "Começar",
+    "skip": "Pular",
+    "slide1": {
+      "title": "Bem-vindo ao FODMAP Fácil",
+      "description": "Seu guia pessoal para entender sensibilidades alimentares através do protocolo de reintrodução FODMAP"
+    },
+    "slide2": {
+      "title": "Acompanhe Sua Jornada",
+      "description": "Siga um protocolo estruturado de testes de 3 dias para cada grupo FODMAP e monitore as respostas do seu corpo"
+    },
+    "slide3": {
+      "title": "Registre Sintomas Facilmente",
+      "description": "Registre rapidamente os sintomas conforme eles acontecem com nosso sistema simples de 3 toques"
+    },
+    "slide4": {
+      "title": "Descubra Seus Gatilhos",
+      "description": "Obtenha insights personalizados e construa uma dieta que funciona para seu corpo único"
+    },
     "features": {
       "title": "Recursos",
       "tracking": "Acompanhe sua jornada FODMAP",
@@ -22,6 +39,15 @@
       "reports": "Visualize relatórios detalhados",
       "personalized": "Plano personalizado para você"
     }
+  },
+  "disclaimer": {
+    "title": "Aviso Médico",
+    "content": "IMPORTANTE: Leia Atentamente\n\nEste aplicativo foi desenvolvido para ajudá-lo a acompanhar e gerenciar sua jornada de reintrodução FODMAP. No entanto, NÃO substitui aconselhamento médico profissional, diagnóstico ou tratamento.\n\nAntes de Começar:\n\n• Sempre consulte um profissional de saúde qualificado ou nutricionista registrado antes de iniciar o protocolo de reintrodução FODMAP\n\n• A dieta de eliminação FODMAP deve ser seguida apenas sob supervisão profissional\n\n• Este aplicativo destina-se apenas a fins informativos e de acompanhamento\n\n• Os resultados individuais podem variar, e o que funciona para uma pessoa pode não funcionar para outra\n\n• Se você experimentar sintomas graves ou reações adversas, pare imediatamente e consulte seu profissional de saúde\n\n• Este aplicativo não fornece aconselhamento médico nem substitui a orientação de profissionais de saúde\n\n• Os desenvolvedores e editores deste aplicativo não são responsáveis por quaisquer resultados de saúde decorrentes do uso desta aplicação\n\nAo continuar, você reconhece que:\n\n• Você leu e compreendeu este aviso\n\n• Você consultará profissionais de saúde antes de fazer mudanças alimentares\n\n• Você entende que este aplicativo é uma ferramenta de acompanhamento, não aconselhamento médico\n\n• Você aceita total responsabilidade por suas decisões de saúde",
+    "acceptLabel": "Eu entendo e aceito os termos acima",
+    "acceptHint": "Marque esta caixa para indicar que você leu e aceita o aviso médico",
+    "continue": "Continuar",
+    "continueHint": "Prosseguir para avaliação de prontidão",
+    "continueDisabledHint": "Você deve aceitar o aviso para continuar"
   },
   "tabs": {
     "home": "Início",
@@ -71,5 +97,193 @@
     "language": "Idioma",
     "notifications": "Notificações",
     "about": "Sobre"
+  },
+  "assessment": {
+    "title": "Avaliação de Prontidão",
+    "subtitle": "Vamos determinar se você está pronto para iniciar o protocolo de reintrodução FODMAP",
+    "progress": "Pergunta {{current}} de {{total}}",
+    "previous": "Anterior",
+    "next": "Próximo",
+    "submit": "Enviar Avaliação",
+    "questions": {
+      "q1": "Você completou pelo menos 2-4 semanas da fase de eliminação FODMAP?",
+      "q2": "Quanto seus sintomas melhoraram durante a fase de eliminação?",
+      "q3": "Você está trabalhando com um profissional de saúde ou nutricionista registrado?",
+      "q4": "Quão comprometido você está em seguir o protocolo de teste de 3 dias para cada grupo alimentar?",
+      "q5": "Você entende o processo de reintrodução FODMAP e seus requisitos?",
+      "q6": "Você tem tempo para dedicar ao acompanhamento de sintomas e seguir o protocolo?"
+    },
+    "options": {
+      "q2": {
+        "significant": "Melhora significativa (sintomas quase resolvidos)",
+        "moderate": "Melhora moderada (redução perceptível)",
+        "slight": "Melhora leve (mudança mínima)",
+        "none": "Sem melhora ou sintomas pioraram"
+      },
+      "q4": {
+        "very_committed": "Muito comprometido - Estou pronto para seguir rigorosamente",
+        "committed": "Comprometido - Farei o meu melhor para seguir",
+        "somewhat": "Parcialmente comprometido - Tentarei mas posso ter dificuldades",
+        "unsure": "Incerto - Não tenho certeza se posso me comprometer"
+      }
+    },
+    "results": {
+      "ready": "Ótimas notícias! Você está pronto para iniciar o protocolo de reintrodução FODMAP. Sua avaliação mostra que você tem a base necessária para o sucesso.",
+      "notReady": "Com base em suas respostas, você pode se beneficiar de preparação adicional antes de iniciar o protocolo de reintrodução.",
+      "readyTitle": "Você Está Pronto!",
+      "notReadyTitle": "Ainda Não Está Pronto",
+      "yourScore": "Sua Pontuação: {{score}} de {{maxScore}} ({{percentage}}%)",
+      "startJourney": "Iniciar Minha Jornada",
+      "reviewRecommendations": "Revisar Recomendações"
+    },
+    "recommendations": {
+      "title": "Recomendações",
+      "completeElimination": "Complete a fase de eliminação completa (2-4 semanas) antes de iniciar a reintrodução",
+      "improveSymptoms": "Continue a fase de eliminação até ver melhora significativa dos sintomas",
+      "seekHealthcare": "Consulte um profissional de saúde ou nutricionista registrado para orientação",
+      "buildCommitment": "Revise os requisitos do protocolo e certifique-se de que está pronto para se comprometer",
+      "learnMore": "Aprenda mais sobre o processo de reintrodução FODMAP e o que esperar",
+      "planTime": "Planeje sua agenda para garantir que você tenha tempo para o protocolo de teste de 3 dias"
+    },
+    "validation": {
+      "required": "Esta pergunta é obrigatória"
+    }
+  },
+  "diary": {
+    "title": "Diário de Sintomas",
+    "quickEntry": "Registrar Sintoma",
+    "logFirstSymptom": "Registrar Primeiro Sintoma",
+    "selectSymptom": "O que você está sentindo?",
+    "selectSeverity": "Qual a gravidade?",
+    "addNotes": "Adicionar Notas (Opcional)",
+    "notesPlaceholder": "Adicione detalhes adicionais...",
+    "saveSymptom": "Salvar Sintoma",
+    "symptomLogged": "Sintoma Registrado!",
+    "emptyTitle": "Nenhum Sintoma Ainda",
+    "emptyDescription": "Comece a rastrear seus sintomas para entender melhor seu corpo e identificar gatilhos alimentares.",
+    "filterAll": "Todos",
+    "symptomTypes": {
+      "bloating": "Inchaço",
+      "pain": "Dor",
+      "gas": "Gases",
+      "diarrhea": "Diarreia",
+      "constipation": "Constipação",
+      "nausea": "Náusea",
+      "other": "Outro"
+    },
+    "severity": {
+      "none": "Nenhum",
+      "mild": "Leve",
+      "moderate": "Moderado",
+      "severe": "Grave"
+    },
+    "timeAgo": {
+      "justNow": "Agora mesmo",
+      "minutesAgo": "{{count}}m atrás",
+      "hoursAgo": "{{count}}h atrás",
+      "daysAgo": "{{count}}d atrás"
+    }
+  },
+  "journey": {
+    "dashboard": "Painel da Jornada",
+    "greeting": "Olá, {{name}}!",
+    "greetingDefault": "Olá!",
+    "currentDate": "Hoje é {{date}}",
+    "protocolStatus": "Status do Protocolo",
+    "nextAction": "Próxima Ação",
+    "progressTimeline": "Linha do Tempo do Progresso",
+    "quickStats": "Estatísticas Rápidas",
+    "recentActivity": "Atividade Recente",
+    "startFirstTest": "Iniciar Primeiro Teste",
+    "continueTest": "Continuar Teste",
+    "startWashout": "Iniciar Período de Pausa",
+    "viewResults": "Ver Resultados",
+    "testsCompleted": "Testes Concluídos",
+    "daysActive": "Dias Ativos",
+    "currentPhase": "Fase Atual",
+    "currentGroup": "Grupo Atual",
+    "estimatedCompletion": "Conclusão Estimada",
+    "completionPercentage": "{{percentage}}% Completo",
+    "noActiveTests": "Nenhum Teste Ativo",
+    "noActiveTestsDescription": "Você ainda não iniciou nenhum teste. Comece sua jornada FODMAP iniciando seu primeiro teste alimentar.",
+    "startYourJourney": "Iniciar Sua Jornada",
+    "phases": {
+      "notStarted": "Não Iniciado",
+      "testing": "Testando",
+      "washout": "Período de Pausa",
+      "complete": "Completo"
+    },
+    "timeline": {
+      "completed": "Concluído",
+      "inProgress": "Em Andamento",
+      "upcoming": "Próximo",
+      "washoutPeriod": "Período de Pausa"
+    }
+  },
+  "testWizard": {
+    "title": "Teste Alimentar",
+    "startTest": "Iniciar Teste",
+    "day": "Dia {{number}}",
+    "dayOf": "Dia {{current}} de {{total}}",
+    "portion": "Porção: {{size}}",
+    "foodItem": "Item Alimentar",
+    "fodmapGroup": "Grupo FODMAP",
+    "testOverview": "Visão Geral do Teste de 3 Dias",
+    "portionProgression": "Progressão da Porção",
+    "instructions": "Instruções",
+    "tips": "Dicas",
+    "confirmConsumption": "Eu Consumi Esta Porção",
+    "consumptionConfirmed": "Consumo Confirmado",
+    "consumedAt": "Consumido às {{time}}",
+    "timeSinceConsumption": "{{hours}}h {{minutes}}m desde o consumo",
+    "logSymptoms": "Registrar Sintomas",
+    "completeDay": "Concluir Dia",
+    "cancelTest": "Cancelar Teste",
+    "testComplete": "Teste Concluído!",
+    "toleranceStatus": "Status de Tolerância",
+    "symptomSummary": "Resumo de Sintomas",
+    "returnToDashboard": "Retornar ao Painel",
+    "startNextTest": "Iniciar Próximo Teste",
+    "dayInstructions": {
+      "day1": "Consuma a porção recomendada e monitore seus sintomas pelas próximas 24 horas.",
+      "day2": "Se você não teve sintomas graves ontem, consuma a porção aumentada de hoje.",
+      "day3": "Último dia! Consuma a porção máxima e complete seu acompanhamento de sintomas."
+    },
+    "generalTips": [
+      "Consuma o alimento de teste com o estômago vazio ou com uma refeição baixa em FODMAP",
+      "Aguarde pelo menos 24 horas entre os dias de teste",
+      "Registre quaisquer sintomas conforme eles ocorrem",
+      "Se você experimentar sintomas graves, pare o teste e inicie um período de pausa"
+    ],
+    "cannotProgress": "Você deve aguardar 24 horas antes de continuar para o próximo dia",
+    "waitingPeriod": "Próximo dia disponível em {{hours}}h {{minutes}}m",
+    "tolerance": {
+      "high": "Alta Tolerância",
+      "moderate": "Tolerância Moderada",
+      "low": "Baixa Tolerância",
+      "none": "Sem Tolerância",
+      "highDescription": "Você tolerou bem este alimento com sintomas mínimos ou nenhum.",
+      "moderateDescription": "Você experimentou alguns sintomas leves, mas pode tolerar porções menores.",
+      "lowDescription": "Você experimentou sintomas moderados. Considere evitar ou limitar este alimento.",
+      "noneDescription": "Você experimentou sintomas graves. Evite este grupo alimentar."
+    },
+    "validation": {
+      "mustConfirmConsumption": "Você deve confirmar o consumo antes de concluir o dia"
+    }
+  },
+  "emptyState": {
+    "title": "Nada Aqui Ainda",
+    "action": "Começar"
+  },
+  "progress": {
+    "stepOf": "Passo {{current}} de {{total}}",
+    "percentComplete": "{{percent}}% Completo"
+  },
+  "offline": {
+    "indicator": "Você está offline. As alterações serão sincronizadas quando você se reconectar.",
+    "syncPending": "Sincronizando alterações...",
+    "syncComplete": "Todas as alterações sincronizadas",
+    "syncError": "Falha na sincronização. Tentará novamente automaticamente.",
+    "dataStoredLocally": "Dados salvos localmente"
   }
 }

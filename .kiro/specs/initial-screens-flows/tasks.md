@@ -1,0 +1,302 @@
+# Implementation Plan
+
+- [x] 1. Set up onboarding feature structure
+  - Create directory structure for onboarding feature
+  - Set up navigation configuration for onboarding stack
+  - Add onboarding state management with AsyncStorage
+  - _Requirements: 1.1, 1.2, 1.3_
+
+- [x] 2. Implement onboarding screens
+  - [x] 2.1 Create OnboardingSlide component
+    - Build reusable slide component with title, description, and illustration
+    - Implement accessibility labels and proper heading hierarchy
+    - Add support for dynamic type scaling
+    - _Requirements: 1.1, 9.1, 9.2, 11.1, 11.2_
+  - [x] 2.2 Create ProgressDots component
+    - Build progress indicator showing current slide
+    - Implement accessibility announcements for progress
+    - Add visual styling with theme tokens
+    - _Requirements: 13.1, 13.4, 13.5_
+  - [x] 2.3 Create OnboardingScreen container
+    - Implement horizontal swipe navigation between slides
+    - Add skip button with navigation to disclaimer
+    - Add "Get Started" button on final slide
+    - Integrate ProgressDots component
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
+  - [x] 2.4 Add onboarding content and translations
+    - Define 3-4 onboarding slides with content
+    - Add i18n keys for all onboarding text
+    - Include illustrations for each slide
+    - _Requirements: 1.2_
+
+- [x] 3. Implement disclaimer and acceptance screen
+  - [x] 3.1 Create DisclaimerScreen component
+    - Build scrollable disclaimer content area
+    - Implement acceptance checkbox with clear label
+    - Add continue button with disabled state logic
+    - Store acceptance state in AsyncStorage
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
+  - [x] 3.2 Add disclaimer content and translations
+    - Write medical disclaimer text
+    - Add i18n keys for disclaimer content
+    - Ensure proper accessibility labels for checkbox
+    - _Requirements: 2.1, 9.1_
+
+- [x] 4. Implement readiness assessment
+  - [x] 4.1 Create AssessmentQuestion component
+    - Build question component supporting boolean, single-choice, and multiple-choice
+    - Implement large touch targets for options (min 44pt)
+    - Add accessibility labels and hints
+    - _Requirements: 3.1, 10.1, 10.2, 9.1, 9.2_
+  - [x] 4.2 Create ReadinessAssessmentScreen
+    - Implement multi-question flow with navigation
+    - Add progress indicator showing current question
+    - Implement validation before submission
+    - Add evaluation logic for readiness criteria
+    - Display results with guidance or navigation to dashboard
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 13.2, 13.4_
+  - [x] 4.3 Define assessment questions and scoring
+    - Create at least 5 assessment questions
+    - Implement scoring algorithm
+    - Add i18n keys for questions and results
+    - _Requirements: 3.1, 3.3_
+
+- [-] 5. Implement journey dashboard
+  - [x] 5.1 Create useJourney hook
+    - Fetch protocol state from database
+    - Integrate with protocol engine to calculate next action
+    - Implement refreshJourney function
+    - Add startTest and completeDay actions
+    - Handle offline/online sync status
+    - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 15.1, 15.2, 15.3, 15.4_
+  - [ ] 5.2 Create ProtocolStatusCard component
+    - Display current protocol phase with icon
+    - Show progress bar with completion percentage
+    - Display current FODMAP group badge
+    - Add estimated completion date
+    - _Requirements: 4.1, 4.2_
+  - [ ] 5.3 Create NextActionCard component
+    - Display dynamic call-to-action based on engine next action
+    - Implement primary action button
+    - Handle different action types (start test, continue test, view results)
+    - _Requirements: 4.3, 4.4, 4.5, 14.4_
+  - [ ] 5.4 Create ProgressTimeline component
+    - Build visual timeline of completed and upcoming tests
+    - Show washout periods in timeline
+    - Add accessibility labels for timeline items
+    - _Requirements: 4.2, 9.1_
+  - [ ] 5.5 Create JourneyDashboardScreen
+    - Integrate useJourney hook
+    - Compose ProtocolStatusCard, NextActionCard, and ProgressTimeline
+    - Add header with greeting and current date
+    - Display quick stats (tests completed, days active)
+    - Show recent activity section
+    - Implement pull-to-refresh
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
+  - [ ] 5.6 Add empty state for new users
+    - Create empty state component for no active tests
+    - Display encouraging message and illustration
+    - Add "Start First Test" primary action
+    - _Requirements: 12.1, 12.3, 12.4, 12.5_
+
+- [x] 6. Implement test wizard flow
+  - [x] 6.1 Create useTestWizard hook
+    - Load current test state from database
+    - Validate day progression (24-hour wait between days)
+    - Implement confirmConsumption function
+    - Implement completeDay function with symptom integration
+    - Add cancelTest function
+    - _Requirements: 5.4, 6.1, 6.2, 6.3, 6.4, 6.5, 14.1, 14.2_
+  - [x] 6.2 Create DoseCard component
+    - Display food item image and name
+    - Show prominent portion size text
+    - Add visual portion indicator
+    - Display consumption status badge
+    - Show timestamp when consumed
+    - Implement confirm consumption button
+    - _Requirements: 5.2, 5.3, 5.4, 6.2, 6.3_
+  - [x] 6.3 Create TestProgressHeader component
+    - Display 3 circles representing test days
+    - Show checkmarks for completed days
+    - Highlight current day
+    - Display food item name in header
+    - _Requirements: 13.3, 13.4, 13.5_
+  - [x] 6.4 Create TestStartScreen
+    - Display food item name, image, and FODMAP group
+    - Show 3-day test overview
+    - Display portion progression preview
+    - Add instructions and tips
+    - Implement start button
+    - _Requirements: 5.1, 5.2, 5.3_
+  - [x] 6.5 Create TestDayScreen
+    - Integrate useTestWizard hook
+    - Display TestProgressHeader
+    - Show DoseCard with current day information
+    - Add timer showing time since consumption
+    - Implement quick symptom entry button
+    - Display day-specific instructions
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 6.1, 6.2, 6.3, 6.4_
+  - [x] 6.6 Create TestCompleteScreen
+    - Display test completion message
+    - Show tolerance status calculated by engine
+    - Display summary of symptoms across 3 days
+    - Add navigation to journey dashboard
+    - _Requirements: 6.5, 14.3, 14.4_
+
+- [x] 7. Implement symptom diary
+  - [x] 7.1 Create useSymptomLogger hook
+    - Implement logSymptom function with auto-generated ID
+    - Save to SQLite immediately
+    - Queue for Supabase sync when online
+    - Associate symptoms with current test step
+    - Update protocol state if severe symptoms detected
+    - Fetch recent symptoms for display
+    - _Requirements: 7.5, 14.1, 14.2, 14.3, 15.1, 15.2, 15.3, 15.4_
+  - [x] 7.2 Create SymptomTypeSelector component
+    - Build 2-column grid of symptom type buttons
+    - Add icon and label for each symptom type (bloating, pain, gas, diarrhea, constipation, nausea, other)
+    - Implement selected state with border highlight
+    - Ensure minimum 44pt touch targets
+    - Add accessibility labels
+    - _Requirements: 7.2, 10.1, 10.2, 10.3, 9.1_
+  - [x] 7.3 Create SymptomSlider component
+    - Build slider with 4 discrete steps (none, mild, moderate, severe)
+    - Add color-coded segments (green, yellow, orange, red)
+    - Implement haptic feedback on value change
+    - Ensure minimum 44pt touch target height
+    - Display visual labels for each severity level
+    - Add accessibility announcements for severity changes
+    - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 10.1, 9.3_
+  - [x] 7.4 Create QuickSymptomEntryModal
+    - Integrate useSymptomLogger hook
+    - Display SymptomTypeSelector as first step
+    - Show SymptomSlider after type selection
+    - Add optional notes field (collapsed by default)
+    - Implement save button
+    - Add success animation on save
+    - Ensure 3-tap maximum flow (type → severity → save)
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+  - [x] 7.5 Create SymptomEntryCard component
+    - Display symptom type with icon
+    - Show severity with color-coded badge
+    - Display timestamp
+    - Show notes if present
+    - Add edit and delete actions
+    - _Requirements: 8.1, 8.2, 8.3_
+  - [x] 7.6 Create DiaryEmptyState component
+    - Display empty state illustration
+    - Show encouraging message
+    - Add primary action button to log first symptom
+    - _Requirements: 12.2, 12.3, 12.4, 12.5_
+  - [x] 7.7 Enhance DiaryScreen
+    - Display list of symptom entries grouped by date
+    - Add floating action button for quick entry
+    - Implement filter by symptom type
+    - Show DiaryEmptyState when no entries
+    - Add pull-to-refresh
+    - Implement virtualized list for performance
+    - _Requirements: 7.1, 12.2_
+
+- [x] 8. Implement shared components
+  - [x] 8.1 Create ProgressHeader component
+    - Display progress bar at top
+    - Show step indicator (e.g., "2 of 4")
+    - Display title text
+    - Add optional back button
+    - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5_
+  - [x] 8.2 Create EmptyState component
+    - Display centered illustration
+    - Show title and description text
+    - Add optional primary action button
+    - Ensure encouraging, friendly tone
+    - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
+
+- [x] 9. Implement navigation integration
+  - [x] 9.1 Update AppNavigator with onboarding stack
+    - Add onboarding stack for first-time users
+    - Implement conditional navigation based on onboarding completion
+    - Add modal stacks for test wizard and quick symptom entry
+    - _Requirements: 1.1, 1.3, 2.5, 3.5_
+  - [x] 9.2 Add journey dashboard to main tabs
+    - Replace or enhance existing home tab with journey dashboard
+    - Update tab bar icons and labels
+    - Ensure proper accessibility labels for tabs
+    - _Requirements: 4.1, 9.1_
+  - [x] 9.3 Implement deep linking for quick symptom entry
+    - Add deep link support for opening symptom entry modal
+    - Enable access from notifications or widgets (future)
+    - _Requirements: 7.1_
+
+- [x] 10. Add internationalization
+  - [x] 10.1 Add English translations
+    - Add all required i18n keys for onboarding
+    - Add keys for disclaimer and assessment
+    - Add keys for journey dashboard
+    - Add keys for test wizard
+    - Add keys for symptom diary
+    - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1_
+  - [x] 10.2 Add Portuguese translations
+    - Translate all English keys to Portuguese
+    - Ensure cultural appropriateness
+    - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1_
+
+- [x] 11. Implement accessibility features
+  - [x] 11.1 Add accessibility labels and hints
+    - Ensure all interactive elements have proper labels
+    - Add hints for complex interactions
+    - Implement state announcements for screen readers
+    - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
+  - [x] 11.2 Verify touch target sizes
+    - Audit all buttons and interactive elements
+    - Ensure minimum 44pt height and width
+    - Add adequate spacing between adjacent targets
+    - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
+  - [x] 11.3 Implement dynamic type support
+    - Ensure all text respects system font size settings
+    - Test layout integrity at maximum text sizes
+    - Prevent text truncation
+    - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
+
+- [x] 12. Implement offline support
+  - [x] 12.1 Add offline detection
+    - Implement network status monitoring
+    - Display offline indicator in UI
+    - _Requirements: 15.5_
+  - [x] 12.2 Implement local data persistence
+    - Ensure all symptom entries save to SQLite
+    - Store test progression locally
+    - Cache protocol state
+    - _Requirements: 15.1, 15.2, 15.3_
+  - [x] 12.3 Implement sync queue
+    - Queue operations when offline
+    - Sync to Supabase when online
+    - Handle sync conflicts
+    - Display sync status to user
+    - _Requirements: 15.4, 15.5_
+
+- [x] 13. Integration and polish
+  - [x] 13.1 Integrate all flows with navigation
+    - Test complete onboarding to dashboard flow
+    - Test test wizard flow from dashboard
+    - Test quick symptom entry from all screens
+    - _Requirements: 1.3, 2.5, 3.5, 4.5, 7.1_
+  - [x] 13.2 Add loading and error states
+    - Implement loading indicators for async operations
+    - Add error boundaries for crash recovery
+    - Display user-friendly error messages
+    - _Requirements: 14.1, 14.2, 14.3_
+  - [x] 13.3 Optimize performance
+    - Memoize expensive components
+    - Implement list virtualization
+    - Optimize image loading
+    - _Requirements: 7.1, 7.5_
+  - [x] 13.4 Add haptic feedback
+    - Implement haptic feedback for slider interactions
+    - Add feedback for button presses
+    - Add feedback for successful actions
+    - _Requirements: 8.4_
+  - [x] 13.5 Polish animations and transitions
+    - Add smooth screen transitions
+    - Implement success animations
+    - Add loading animations
+    - _Requirements: 1.3, 7.5_

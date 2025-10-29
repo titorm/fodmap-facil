@@ -15,6 +15,23 @@
   "onboarding": {
     "welcome": "Welcome to FODMAP Easy",
     "getStarted": "Get Started",
+    "skip": "Skip",
+    "slide1": {
+      "title": "Welcome to FODMAP Easy",
+      "description": "Your personal guide to understanding food sensitivities through the FODMAP reintroduction protocol"
+    },
+    "slide2": {
+      "title": "Track Your Journey",
+      "description": "Follow a structured 3-day testing protocol for each FODMAP group and monitor your body's responses"
+    },
+    "slide3": {
+      "title": "Log Symptoms Easily",
+      "description": "Quickly record symptoms as they happen with our simple 3-tap logging system"
+    },
+    "slide4": {
+      "title": "Discover Your Triggers",
+      "description": "Get personalized insights and build a diet that works for your unique body"
+    },
     "features": {
       "title": "Features",
       "tracking": "Track your FODMAP journey",
@@ -22,6 +39,15 @@
       "reports": "View detailed reports",
       "personalized": "Personalized plan for you"
     }
+  },
+  "disclaimer": {
+    "title": "Medical Disclaimer",
+    "content": "IMPORTANT: Please Read Carefully\n\nThis application is designed to help you track and manage your FODMAP reintroduction journey. However, it is NOT a substitute for professional medical advice, diagnosis, or treatment.\n\nBefore You Begin:\n\n• Always consult with a qualified healthcare provider or registered dietitian before starting the FODMAP reintroduction protocol\n\n• The FODMAP elimination diet should only be followed under professional supervision\n\n• This app is intended for informational and tracking purposes only\n\n• Individual results may vary, and what works for one person may not work for another\n\n• If you experience severe symptoms or adverse reactions, stop immediately and consult your healthcare provider\n\n• This app does not provide medical advice or replace the guidance of healthcare professionals\n\n• The developers and publishers of this app are not responsible for any health outcomes resulting from use of this application\n\nBy continuing, you acknowledge that:\n\n• You have read and understood this disclaimer\n\n• You will consult with healthcare professionals before making dietary changes\n\n• You understand this app is a tracking tool, not medical advice\n\n• You accept full responsibility for your health decisions",
+    "acceptLabel": "I understand and accept the terms above",
+    "acceptHint": "Check this box to indicate you have read and accept the medical disclaimer",
+    "continue": "Continue",
+    "continueHint": "Proceed to readiness assessment",
+    "continueDisabledHint": "You must accept the disclaimer to continue"
   },
   "tabs": {
     "home": "Home",
@@ -71,5 +97,193 @@
     "language": "Language",
     "notifications": "Notifications",
     "about": "About"
+  },
+  "assessment": {
+    "title": "Readiness Assessment",
+    "subtitle": "Let's determine if you're ready to start the FODMAP reintroduction protocol",
+    "progress": "Question {{current}} of {{total}}",
+    "previous": "Previous",
+    "next": "Next",
+    "submit": "Submit Assessment",
+    "questions": {
+      "q1": "Have you completed at least 2-4 weeks of the FODMAP elimination phase?",
+      "q2": "How much have your symptoms improved during the elimination phase?",
+      "q3": "Are you working with a healthcare provider or registered dietitian?",
+      "q4": "How committed are you to following the 3-day testing protocol for each food group?",
+      "q5": "Do you understand the FODMAP reintroduction process and its requirements?",
+      "q6": "Do you have time to dedicate to tracking symptoms and following the protocol?"
+    },
+    "options": {
+      "q2": {
+        "significant": "Significant improvement (symptoms mostly resolved)",
+        "moderate": "Moderate improvement (noticeable reduction)",
+        "slight": "Slight improvement (minimal change)",
+        "none": "No improvement or symptoms worsened"
+      },
+      "q4": {
+        "very_committed": "Very committed - I'm ready to follow it strictly",
+        "committed": "Committed - I'll do my best to follow it",
+        "somewhat": "Somewhat committed - I'll try but may struggle",
+        "unsure": "Unsure - I'm not sure I can commit"
+      }
+    },
+    "results": {
+      "ready": "Great news! You're ready to start the FODMAP reintroduction protocol. Your assessment shows you have the foundation needed for success.",
+      "notReady": "Based on your responses, you may benefit from additional preparation before starting the reintroduction protocol.",
+      "readyTitle": "You're Ready!",
+      "notReadyTitle": "Not Quite Ready Yet",
+      "yourScore": "Your Score: {{score}} out of {{maxScore}} ({{percentage}}%)",
+      "startJourney": "Start My Journey",
+      "reviewRecommendations": "Review Recommendations"
+    },
+    "recommendations": {
+      "title": "Recommendations",
+      "completeElimination": "Complete the full elimination phase (2-4 weeks) before starting reintroduction",
+      "improveSymptoms": "Continue the elimination phase until you see significant symptom improvement",
+      "seekHealthcare": "Consult with a healthcare provider or registered dietitian for guidance",
+      "buildCommitment": "Review the protocol requirements and ensure you're ready to commit",
+      "learnMore": "Learn more about the FODMAP reintroduction process and what to expect",
+      "planTime": "Plan your schedule to ensure you have time for the 3-day testing protocol"
+    },
+    "validation": {
+      "required": "This question is required"
+    }
+  },
+  "diary": {
+    "title": "Symptom Diary",
+    "quickEntry": "Log Symptom",
+    "logFirstSymptom": "Log First Symptom",
+    "selectSymptom": "What are you experiencing?",
+    "selectSeverity": "How severe is it?",
+    "addNotes": "Add Notes (Optional)",
+    "notesPlaceholder": "Add any additional details...",
+    "saveSymptom": "Save Symptom",
+    "symptomLogged": "Symptom Logged!",
+    "emptyTitle": "No Symptoms Yet",
+    "emptyDescription": "Start tracking your symptoms to understand your body better and identify food triggers.",
+    "filterAll": "All",
+    "symptomTypes": {
+      "bloating": "Bloating",
+      "pain": "Pain",
+      "gas": "Gas",
+      "diarrhea": "Diarrhea",
+      "constipation": "Constipation",
+      "nausea": "Nausea",
+      "other": "Other"
+    },
+    "severity": {
+      "none": "None",
+      "mild": "Mild",
+      "moderate": "Moderate",
+      "severe": "Severe"
+    },
+    "timeAgo": {
+      "justNow": "Just now",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago",
+      "daysAgo": "{{count}}d ago"
+    }
+  },
+  "journey": {
+    "dashboard": "Journey Dashboard",
+    "greeting": "Hello, {{name}}!",
+    "greetingDefault": "Hello!",
+    "currentDate": "Today is {{date}}",
+    "protocolStatus": "Protocol Status",
+    "nextAction": "Next Action",
+    "progressTimeline": "Progress Timeline",
+    "quickStats": "Quick Stats",
+    "recentActivity": "Recent Activity",
+    "startFirstTest": "Start First Test",
+    "continueTest": "Continue Test",
+    "startWashout": "Start Washout Period",
+    "viewResults": "View Results",
+    "testsCompleted": "Tests Completed",
+    "daysActive": "Days Active",
+    "currentPhase": "Current Phase",
+    "currentGroup": "Current Group",
+    "estimatedCompletion": "Estimated Completion",
+    "completionPercentage": "{{percentage}}% Complete",
+    "noActiveTests": "No Active Tests",
+    "noActiveTestsDescription": "You haven't started any tests yet. Begin your FODMAP journey by starting your first food test.",
+    "startYourJourney": "Start Your Journey",
+    "phases": {
+      "notStarted": "Not Started",
+      "testing": "Testing",
+      "washout": "Washout Period",
+      "complete": "Complete"
+    },
+    "timeline": {
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "upcoming": "Upcoming",
+      "washoutPeriod": "Washout Period"
+    }
+  },
+  "testWizard": {
+    "title": "Food Test",
+    "startTest": "Start Test",
+    "day": "Day {{number}}",
+    "dayOf": "Day {{current}} of {{total}}",
+    "portion": "Portion: {{size}}",
+    "foodItem": "Food Item",
+    "fodmapGroup": "FODMAP Group",
+    "testOverview": "3-Day Test Overview",
+    "portionProgression": "Portion Progression",
+    "instructions": "Instructions",
+    "tips": "Tips",
+    "confirmConsumption": "I Consumed This Portion",
+    "consumptionConfirmed": "Consumption Confirmed",
+    "consumedAt": "Consumed at {{time}}",
+    "timeSinceConsumption": "{{hours}}h {{minutes}}m since consumption",
+    "logSymptoms": "Log Symptoms",
+    "completeDay": "Complete Day",
+    "cancelTest": "Cancel Test",
+    "testComplete": "Test Complete!",
+    "toleranceStatus": "Tolerance Status",
+    "symptomSummary": "Symptom Summary",
+    "returnToDashboard": "Return to Dashboard",
+    "startNextTest": "Start Next Test",
+    "dayInstructions": {
+      "day1": "Consume the recommended portion and monitor your symptoms for the next 24 hours.",
+      "day2": "If you had no severe symptoms yesterday, consume today's increased portion.",
+      "day3": "Final day! Consume the maximum portion and complete your symptom tracking."
+    },
+    "generalTips": [
+      "Consume the test food on an empty stomach or with a low-FODMAP meal",
+      "Wait at least 24 hours between test days",
+      "Log any symptoms as they occur",
+      "If you experience severe symptoms, stop the test and start a washout period"
+    ],
+    "cannotProgress": "You must wait 24 hours before continuing to the next day",
+    "waitingPeriod": "Next day available in {{hours}}h {{minutes}}m",
+    "tolerance": {
+      "high": "High Tolerance",
+      "moderate": "Moderate Tolerance",
+      "low": "Low Tolerance",
+      "none": "No Tolerance",
+      "highDescription": "You tolerated this food well with minimal or no symptoms.",
+      "moderateDescription": "You experienced some mild symptoms but may tolerate smaller portions.",
+      "lowDescription": "You experienced moderate symptoms. Consider avoiding or limiting this food.",
+      "noneDescription": "You experienced severe symptoms. Avoid this food group."
+    },
+    "validation": {
+      "mustConfirmConsumption": "You must confirm consumption before completing the day"
+    }
+  },
+  "emptyState": {
+    "title": "Nothing Here Yet",
+    "action": "Get Started"
+  },
+  "progress": {
+    "stepOf": "Step {{current}} of {{total}}",
+    "percentComplete": "{{percent}}% Complete"
+  },
+  "offline": {
+    "indicator": "You're offline. Changes will sync when you reconnect.",
+    "syncPending": "Syncing changes...",
+    "syncComplete": "All changes synced",
+    "syncError": "Sync failed. Will retry automatically.",
+    "dataStoredLocally": "Data saved locally"
   }
 }

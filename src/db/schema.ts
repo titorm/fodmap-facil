@@ -42,6 +42,11 @@ export const protocolRuns = sqliteTable('protocol_runs', {
   notes: text('notes'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  syncStatus: text('sync_status')
+    .notNull()
+    .default('pending')
+    .$type<'pending' | 'synced' | 'error'>(),
+  lastSyncAttempt: integer('last_sync_attempt', { mode: 'timestamp' }),
 });
 
 /**
@@ -63,6 +68,11 @@ export const testSteps = sqliteTable('test_steps', {
   notes: text('notes'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  syncStatus: text('sync_status')
+    .notNull()
+    .default('pending')
+    .$type<'pending' | 'synced' | 'error'>(),
+  lastSyncAttempt: integer('last_sync_attempt', { mode: 'timestamp' }),
 });
 
 /**
@@ -79,6 +89,11 @@ export const symptomEntries = sqliteTable('symptom_entries', {
   timestamp: integer('timestamp', { mode: 'timestamp' }).notNull(),
   notes: text('notes'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  syncStatus: text('sync_status')
+    .notNull()
+    .default('pending')
+    .$type<'pending' | 'synced' | 'error'>(),
+  lastSyncAttempt: integer('last_sync_attempt', { mode: 'timestamp' }),
 });
 
 /**
