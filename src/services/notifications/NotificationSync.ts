@@ -7,7 +7,8 @@
 
 import { NotificationError, NotificationErrorCode } from './types';
 import { useNotificationPreferencesStore } from '../../shared/stores/notificationPreferencesStore';
-import { UserProfileRepository } from '../repositories/UserProfileRepository';
+import { tablesDB, DATABASE_ID, TABLES } from '../../infrastructure/api/appwrite';
+import type { UserProfile } from '../../shared/types/entities';
 
 /**
  * Sync notification preferences to Appwrite
@@ -16,12 +17,15 @@ import { UserProfileRepository } from '../repositories/UserProfileRepository';
 export async function syncNotificationPreferences(userId: string): Promise<void> {
   try {
     const store = useNotificationPreferencesStore.getState();
-    const userProfileRepo = UserProfileRepository.getInstance();
 
     // Get current user profile
-    const profile = await userProfileRepo.getById(userId);
+    const row = await tablesDB.getRow({
+      databaseId: DATABASE_ID,
+      tableId: TABLES.USER_PROFILES,
+      rowId: userId,
+    });
 
-    if (!profile) {
+    if (!row) {
       throw new NotificationError(
         NotificationErrorCode.SYNC_ERROR,
         'User profile not found for sync'
@@ -29,32 +33,34 @@ export async function syncNotificationPreferences(userId: string): Promise<void>
     }
 
     // Update notification preferences in profile
-    const updatedProfile = {
-      ...profile,
-      notificationPreferences: {
-        permissionGranted: store.permissionStatus === 'granted',
-        dailyReminderEnabled: store.dailyReminderEnabled,
-        dailyReminderTime: store.dailyReminderTime
-          ? `${String(store.dailyReminderTime.hour).padStart(2, '0')}:${String(store.dailyReminderTime.minute).padStart(2, '0')}`
-          : null,
-        doseReminderEnabled: store.doseReminderEnabled,
-        doseReminderAdvanceMinutes: store.doseReminderAdvanceMinutes,
-        washoutNotificationsEnabled: store.washoutNotificationsEnabled,
-        testStartReminderEnabled: store.testStartReminderEnabled,
-        quietHoursEnabled: store.quietHours?.enabled ?? false,
-        quietHoursStart: store.quietHours?.start
-          ? `${String(store.quietHours.start.hour).padStart(2, '0')}:${String(store.quietHours.start.minute).padStart(2, '0')}`
-          : null,
-        quietHoursEnd: store.quietHours?.end
-          ? `${String(store.quietHours.end.hour).padStart(2, '0')}:${String(store.quietHours.end.minute).padStart(2, '0')}`
-          : null,
-        quietHoursAllowCritical: store.quietHours?.allowCritical ?? false,
-        adaptiveFrequencyEnabled: store.adaptiveFrequencyEnabled,
-        currentFrequency: store.currentFrequency,
-      },
+    const notificationPreferences = {
+      permissionGranted: store.permissionStatus === 'granted',
+      dailyReminderEnabled: store.dailyReminderEnabled,
+      dailyReminderTime: store.dailyReminderTime
+        ? `${String(store.dailyReminderTime.hour).padStart(2, '0')}:${String(store.dailyReminderTime.minute).padStart(2, '0')}`
+        : null,
+      doseReminderEnabled: store.doseReminderEnabled,
+      doseReminderAdvanceMinutes: store.doseReminderAdvanceMinutes,
+      washoutNotificationsEnabled: store.washoutNotificationsEnabled,
+      testStartReminderEnabled: store.testStartReminderEnabled,
+      quietHoursEnabled: store.quietHours?.enabled ?? false,
+      quietHoursStart: store.quietHours?.start
+        ? `${String(store.quietHours.start.hour).padStart(2, '0')}:${String(store.quietHours.start.minute).padStart(2, '0')}`
+        : null,
+      quietHoursEnd: store.quietHours?.end
+        ? `${String(store.quietHours.end.hour).padStart(2, '0')}:${String(store.quietHours.end.minute).padStart(2, '0')}`
+        : null,
+      quietHoursAllowCritical: store.quietHours?.allowCritical ?? false,
+      adaptiveFrequencyEnabled: store.adaptiveFrequencyEnabled,
+      currentFrequency: store.currentFrequency,
     };
 
-    await userProfileRepo.update(userId, updatedProfile);
+    await tablesDB.updateRow({
+      databaseId: DATABASE_ID,
+      tableId: TABLES.USER_PROFILES,
+      rowId: userId,
+      data: { notificationPreferences },
+    });
 
     console.log('Notification preferences synced successfully');
   } catch (error) {
@@ -73,8 +79,13 @@ export async function syncNotificationPreferences(userId: string): Promise<void>
  */
 export async function loadNotificationPreferences(userId: string): Promise<void> {
   try {
-    const userProfileRepo = UserProfileRepository.getInstance();
-    const profile = await userProfileRepo.getById(userId);
+    const row = await tablesDB.getRow({
+      databaseId: DATABASE_ID,
+      tableId: TABLES.USER_PROFILES,
+      rowId: userId,
+    });
+
+    const profile = row as UserProfile;
 
     if (!profile || !profile.notificationPreferences) {
       console.log('No notification preferences found in profile');

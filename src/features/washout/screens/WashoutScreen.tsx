@@ -14,12 +14,7 @@ interface WashoutScreenProps {
 
 export function WashoutScreen({ protocolRunId }: WashoutScreenProps) {
   const { theme } = useTheme();
-  const {
-    isActive,
-    daysRemaining,
-    progress,
-    isLoading,
-  } = useWashout(protocolRunId);
+  const { isActive, daysRemaining, progress, isLoading } = useWashout(protocolRunId);
 
   if (isLoading) {
     return (

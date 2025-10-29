@@ -6,7 +6,8 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { initializeNotifications, notificationListeners } from './index';
+import { initializeNotifications } from './NotificationConfig';
+import { notificationListeners } from './NotificationListeners';
 import { notificationActionHandlers } from './NotificationActionHandlers';
 import { notificationService } from './NotificationService';
 

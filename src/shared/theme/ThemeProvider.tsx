@@ -92,3 +92,13 @@ export const useTheme = (): ThemeContextValue => {
   }
   return context;
 };
+
+export const theme = (isDark = false): Theme => ({
+  colors: isDark ? darkColors : lightColors,
+  spacing,
+  typography,
+  borderRadius,
+  shadows,
+  accessibility,
+  isDark,
+});

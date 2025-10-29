@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tantml:parameter>
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../../lib/queryClient';
 import { tablesDB, DATABASE_ID, TABLES, ID } from '../../../infrastructure/api/appwrite';
 import type { TestStep, SymptomEntry, FoodItem } from '../../../shared/types/entities';

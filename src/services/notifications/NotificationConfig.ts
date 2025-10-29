@@ -115,8 +115,18 @@ export async function setupNotificationCategories(): Promise<void> {
     },
   ]);
 
-  // Category for washout notifications (no actions needed)
-  await Notifications.setNotificationCategoryAsync('washout', []);
+  // Category for washout notifications with view action
+  await Notifications.setNotificationCategoryAsync('washout', [
+    {
+      identifier: 'view-washout',
+      buttonTitle: 'View',
+      options: {
+        opensAppToForeground: true,
+        isDestructive: false,
+        isAuthenticationRequired: false,
+      },
+    },
+  ]);
 
   console.log('Notification categories configured successfully');
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSyncStatus } from '../../hooks/useSyncStatus';
-import { tokens } from '../../theme/tokens';
+import { useTheme } from '../../theme';
 
 /**
  * SyncStatusIndicator Component
@@ -27,6 +27,7 @@ import { tokens } from '../../theme/tokens';
  */
 export function SyncStatusIndicator() {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const { isSyncing, pendingCount, lastSyncDate, syncError, syncNow } = useSyncStatus();
 
   // Don't render if nothing to show
@@ -54,12 +55,11 @@ export function SyncStatusIndicator() {
   return (
     <View
       style={[
-        styles.container,
-        syncError && styles.containerError,
-        isSyncing && styles.containerSyncing,
+        styles(theme).container,
+        syncError && styles(theme).containerError,
+        isSyncing && styles(theme).containerSyncing,
       ]}
       accessible={true}
-      accessibilityRole="status"
       accessibilityLabel={
         isSyncing
           ? t('offline.syncPending')
@@ -69,34 +69,34 @@ export function SyncStatusIndicator() {
       }
       accessibilityLiveRegion="polite"
     >
-      <View style={styles.content}>
+      <View style={styles(theme).content}>
         {isSyncing ? (
           <>
-            <ActivityIndicator size="small" color={tokens.colors.textInverse} />
-            <Text style={styles.text}>{t('offline.syncPending')}</Text>
+            <ActivityIndicator size="small" color={theme.colors.textInverse} />
+            <Text style={styles(theme).text}>{t('offline.syncPending')}</Text>
           </>
         ) : syncError ? (
           <>
-            <Text style={styles.text}>⚠️ {t('offline.syncError')}</Text>
+            <Text style={styles(theme).text}>⚠️ {t('offline.syncError')}</Text>
             <TouchableOpacity
               onPress={syncNow}
-              style={styles.retryButton}
+              style={styles(theme).retryButton}
               accessible={true}
               accessibilityRole="button"
               accessibilityLabel={t('common.retry')}
             >
-              <Text style={styles.retryText}>{t('common.retry')}</Text>
+              <Text style={styles(theme).retryText}>{t('common.retry')}</Text>
             </TouchableOpacity>
           </>
         ) : (
           <>
-            <Text style={styles.text}>
+            <Text style={styles(theme).text}>
               {pendingCount > 0
                 ? `${pendingCount} ${t('offline.dataStoredLocally')}`
                 : t('offline.syncComplete')}
             </Text>
             {lastSyncDate && (
-              <Text style={styles.timestamp}>
+              <Text style={styles(theme).timestamp}>
                 {t('offline.syncComplete')} {formatLastSync(lastSyncDate)}
               </Text>
             )}
@@ -107,43 +107,44 @@ export function SyncStatusIndicator() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: tokens.colors.info,
-    paddingVertical: tokens.spacing.sm,
-    paddingHorizontal: tokens.spacing.md,
-  },
-  containerError: {
-    backgroundColor: tokens.colors.error,
-  },
-  containerSyncing: {
-    backgroundColor: tokens.colors.primary,
-  },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: tokens.spacing.sm,
-  },
-  text: {
-    color: tokens.colors.textInverse,
-    fontSize: tokens.typography.fontSize.sm,
-    fontWeight: tokens.typography.fontWeight.medium,
-  },
-  timestamp: {
-    color: tokens.colors.textInverse,
-    fontSize: tokens.typography.fontSize.xs,
-    opacity: 0.8,
-  },
-  retryButton: {
-    paddingHorizontal: tokens.spacing.sm,
-    paddingVertical: tokens.spacing.xs,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: tokens.borderRadius.sm,
-  },
-  retryText: {
-    color: tokens.colors.textInverse,
-    fontSize: tokens.typography.fontSize.sm,
-    fontWeight: tokens.typography.fontWeight.semibold,
-  },
-});
+const styles = (theme: ReturnType<typeof useTheme>['theme']) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: theme.colors.info,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    containerError: {
+      backgroundColor: theme.colors.error,
+    },
+    containerSyncing: {
+      backgroundColor: theme.colors.primary500,
+    },
+    content: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: theme.spacing.sm,
+    },
+    text: {
+      color: theme.colors.textInverse,
+      fontSize: theme.typography.fontSize.sm,
+      fontWeight: theme.typography.fontWeight.medium,
+    },
+    timestamp: {
+      color: theme.colors.textInverse,
+      fontSize: theme.typography.fontSize.xs,
+      opacity: 0.8,
+    },
+    retryButton: {
+      paddingHorizontal: theme.spacing.sm,
+      paddingVertical: theme.spacing.xs,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      borderRadius: theme.borderRadius.sm,
+    },
+    retryText: {
+      color: theme.colors.textInverse,
+      fontSize: theme.typography.fontSize.sm,
+      fontWeight: theme.typography.fontWeight.semibold,
+    },
+  });

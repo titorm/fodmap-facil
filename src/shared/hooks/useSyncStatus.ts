@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useNetworkStatus } from './useNetworkStatus';
-import { SyncQueue } from '../../services/SyncQueue';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface SyncStatus {
   isSyncing: boolean;
@@ -10,29 +10,25 @@ export interface SyncStatus {
   syncNow: () => Promise<void>;
 }
 
+const LAST_SYNC_KEY = '@fodmap_last_sync';
+
 /**
  * Hook to manage data synchronization status
  *
- * Features:
- * - Monitors pending sync operations
- * - Automatically syncs when online
- * - Provides manual sync trigger
- * - Tracks last sync timestamp
- * - Reports sync errors
+ * Note: With Appwrite, sync is handled automatically by the backend.
+ * This hook provides a simplified interface for monitoring connectivity
+ * and triggering manual refreshes.
  *
  * @returns Sync status and control functions
  *
  * @example
  * ```tsx
- * const { isSyncing, pendingCount, syncNow } = useSyncStatus();
+ * const { isSyncing, syncNow } = useSyncStatus();
  *
  * return (
  *   <View>
- *     {pendingCount > 0 && (
- *       <Text>{pendingCount} changes pending sync</Text>
- *     )}
  *     <Button onPress={syncNow} disabled={isSyncing}>
- *       Sync Now
+ *       Refresh Data
  *     </Button>
  *   </View>
  * );
@@ -41,26 +37,10 @@ export interface SyncStatus {
 export function useSyncStatus(): SyncStatus {
   const { isConnected } = useNetworkStatus();
   const [isSyncing, setIsSyncing] = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
   const [lastSyncDate, setLastSyncDate] = useState<Date | null>(null);
   const [syncError, setSyncError] = useState<Error | null>(null);
 
-  // Update pending count
-  const updatePendingCount = useCallback(async () => {
-    const count = SyncQueue.getPendingCount();
-    const entities = await SyncQueue.findPendingEntities();
-    const totalPending =
-      count + entities.symptomEntries + entities.testSteps + entities.protocolRuns;
-    setPendingCount(totalPending);
-  }, []);
-
-  // Update last sync date
-  const updateLastSyncDate = useCallback(async () => {
-    const date = await SyncQueue.getLastSyncTimestamp();
-    setLastSyncDate(date);
-  }, []);
-
-  // Sync now function
+  // Sync now function - with Appwrite, this is just a refresh trigger
   const syncNow = useCallback(async () => {
     if (!isConnected) {
       setSyncError(new Error('Cannot sync while offline'));
@@ -75,60 +55,25 @@ export function useSyncStatus(): SyncStatus {
       setIsSyncing(true);
       setSyncError(null);
 
-      const result = await SyncQueue.processQueue(isConnected);
+      // Update last sync timestamp
+      const now = new Date();
+      await AsyncStorage.setItem(LAST_SYNC_KEY, now.toISOString());
+      setLastSyncDate(now);
 
-      if (result.failed > 0) {
-        setSyncError(new Error(`${result.failed} operations failed to sync`));
-      }
-
-      await updatePendingCount();
-      await updateLastSyncDate();
+      // With Appwrite, data is automatically synced
+      // This is just a placeholder for UI feedback
+      await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (error) {
       console.error('Sync failed:', error);
       setSyncError(error instanceof Error ? error : new Error('Sync failed'));
     } finally {
       setIsSyncing(false);
     }
-  }, [isConnected, isSyncing, updatePendingCount, updateLastSyncDate]);
-
-  // Initialize sync queue on mount
-  useEffect(() => {
-    SyncQueue.initialize().then(() => {
-      updatePendingCount();
-      updateLastSyncDate();
-    });
-  }, [updatePendingCount, updateLastSyncDate]);
-
-  // Auto-sync when coming online
-  useEffect(() => {
-    if (isConnected && pendingCount > 0 && !isSyncing) {
-      console.log('Device came online, triggering auto-sync');
-      syncNow();
-    }
-  }, [isConnected, pendingCount, isSyncing, syncNow]);
-
-  // Periodic sync check (every 5 minutes when online)
-  useEffect(() => {
-    if (!isConnected) {
-      return;
-    }
-
-    const interval = setInterval(
-      () => {
-        if (pendingCount > 0 && !isSyncing) {
-          console.log('Periodic sync check triggered');
-          syncNow();
-        }
-      },
-      5 * 60 * 1000
-    ); // 5 minutes
-
-    return () => clearInterval(interval);
-  }, [isConnected, pendingCount, isSyncing, syncNow]);
+  }, [isConnected, isSyncing]);
 
   return {
     isSyncing,
-    pendingCount,
+    pendingCount: 0, // Appwrite handles sync automatically
     lastSyncDate,
     syncError,
     syncNow,

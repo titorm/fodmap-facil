@@ -1735,6 +1735,12 @@ export class NotificationService {
    */
   async initializeHistoryCleanup(): Promise<void> {
     try {
+      // Skip cleanup if user is not authenticated
+      if (!this.userId) {
+        console.log('Skipping history cleanup - user not authenticated');
+        return;
+      }
+
       // Run cleanup immediately
       await this.cleanupOldHistory(30);
 

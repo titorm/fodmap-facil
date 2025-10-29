@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
-import { tokens } from '../../theme/tokens';
+import { useTheme } from '../../theme';
 
 /**
  * OfflineIndicator Component
@@ -26,6 +26,7 @@ import { tokens } from '../../theme/tokens';
  */
 export function OfflineIndicator() {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const { isConnected } = useNetworkStatus();
 
   // Don't render anything if connected
@@ -35,28 +36,29 @@ export function OfflineIndicator() {
 
   return (
     <View
-      style={styles.container}
+      style={styles(theme).container}
       accessible={true}
       accessibilityRole="alert"
       accessibilityLabel={t('offline.indicator')}
       accessibilityLiveRegion="polite"
     >
-      <Text style={styles.text}>{t('offline.indicator')}</Text>
+      <Text style={styles(theme).text}>{t('offline.indicator')}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: tokens.colors.warning,
-    paddingVertical: tokens.spacing.sm,
-    paddingHorizontal: tokens.spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    color: tokens.colors.textInverse,
-    fontSize: tokens.typography.fontSize.sm,
-    fontWeight: tokens.typography.fontWeight.medium,
-  },
-});
+const styles = (theme: ReturnType<typeof useTheme>['theme']) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: theme.colors.warning,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    text: {
+      color: theme.colors.textInverse,
+      fontSize: theme.typography.fontSize.sm,
+      fontWeight: theme.typography.fontWeight.medium,
+    },
+  });
