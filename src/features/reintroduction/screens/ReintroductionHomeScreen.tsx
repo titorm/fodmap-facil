@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, ViewStyle, TextStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
-import { Card } from '../../../shared/components/atoms';
+import { Card, NotificationIndicator } from '../../../shared/components/atoms';
 import { useTheme } from '../../../shared/theme';
 import { useAuth } from '../../../shared/hooks/useAuth';
 import { useActiveProtocolRun } from '../../../shared/hooks/useProtocolRuns';
@@ -88,6 +88,10 @@ export const ReintroductionHomeScreen: React.FC = () => {
     }
   };
 
+  const handleNavigateToNotificationSettings = () => {
+    navigation.navigate('NotificationSettingsScreen');
+  };
+
   const renderFodmapCard = ({ item }: { item: (typeof fodmapGroups)[0] }) => (
     <Card
       style={cardStyle}
@@ -116,19 +120,28 @@ export const ReintroductionHomeScreen: React.FC = () => {
         contentContainerStyle={listStyle}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
-          activeWashout ? (
-            <Card
-              style={washoutCardStyle}
-              onPress={handleNavigateToWashout}
-              accessibilityLabel="Active washout period"
-              accessibilityHint="Tap to view your washout period details"
-            >
-              <Text style={cardTitleStyle}>🕐 Período de Washout Ativo</Text>
-              <Text style={cardSubtitleStyle}>
-                Toque para ver o cronômetro e conteúdo educacional
-              </Text>
-            </Card>
-          ) : null
+          <>
+            {/* Notification Indicator - Task 11.4 */}
+            <NotificationIndicator
+              onPress={handleNavigateToNotificationSettings}
+              showBadgeCount={true}
+              style={{ marginBottom: spacing.lg }}
+            />
+
+            {activeWashout ? (
+              <Card
+                style={washoutCardStyle}
+                onPress={handleNavigateToWashout}
+                accessibilityLabel="Active washout period"
+                accessibilityHint="Tap to view your washout period details"
+              >
+                <Text style={cardTitleStyle}>🕐 Período de Washout Ativo</Text>
+                <Text style={cardSubtitleStyle}>
+                  Toque para ver o cronômetro e conteúdo educacional
+                </Text>
+              </Card>
+            ) : null}
+          </>
         }
       />
     </View>

@@ -9,3 +9,4 @@ export * from './LoadingSpinner';
 export * from './ErrorMessage';
 export * from './AnimatedLoadingSpinner';
 export * from './SkeletonLoader';
+export * from './NotificationIndicator';

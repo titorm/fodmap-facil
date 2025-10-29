@@ -18,7 +18,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.yourcompany.fodmapreintro",
       "infoPlist": {
-        "UIAccessibilityTraits": "button"
+        "UIAccessibilityTraits": "button",
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -27,7 +30,18 @@
         "backgroundColor": "#2196F3"
       },
       "package": "com.yourcompany.fodmapreintro",
-      "permissions": []
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM"
+      ]
+    },
+    "notification": {
+      "icon": "./assets/icon.png",
+      "color": "#2196F3",
+      "androidMode": "default",
+      "androidCollapsedTitle": "FODMAP Fácil",
+      "iosDisplayInForeground": true
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -39,6 +53,15 @@
         "expo-sqlite",
         {
           "enableFTS": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#2196F3",
+          "sounds": [],
+          "mode": "production"
         }
       ]
     ],

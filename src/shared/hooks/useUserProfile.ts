@@ -6,6 +6,7 @@ import type {
   CreateUserProfileInput,
   UpdateUserProfileInput,
 } from '../types/entities';
+import { migrateUserProfileNotificationPreferences } from '../utils/notificationPreferencesMigration';
 
 /**
  * Hook to fetch a user profile by ID
@@ -21,11 +22,14 @@ export function useUserProfile(id: string) {
           rowId: id,
         });
 
-        return {
+        const profile = {
           ...row,
           createdAt: new Date(row.createdAt),
           updatedAt: new Date(row.updatedAt),
         } as UserProfile;
+
+        // Migrate notification preferences if missing
+        return migrateUserProfileNotificationPreferences(profile);
       } catch {
         return null;
       }
@@ -50,11 +54,14 @@ export function useUserProfileByEmail(email: string) {
       if (rows.length === 0) return null;
 
       const row = rows[0];
-      return {
+      const profile = {
         ...row,
         createdAt: new Date(row.createdAt),
         updatedAt: new Date(row.updatedAt),
       } as UserProfile;
+
+      // Migrate notification preferences if missing
+      return migrateUserProfileNotificationPreferences(profile);
     },
     enabled: !!email,
   });
@@ -85,11 +92,14 @@ export function useCreateUserProfile() {
         data: rowData,
       });
 
-      return {
+      const profile = {
         ...row,
         createdAt: new Date(row.createdAt),
         updatedAt: new Date(row.updatedAt),
       } as UserProfile;
+
+      // Ensure notification preferences are present
+      return migrateUserProfileNotificationPreferences(profile);
     },
     onSuccess: (newUserProfile) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.userProfiles.all });
@@ -126,11 +136,14 @@ export function useUpdateUserProfile() {
         data: rowData,
       });
 
-      return {
+      const profile = {
         ...row,
         createdAt: new Date(row.createdAt),
         updatedAt: new Date(row.updatedAt),
       } as UserProfile;
+
+      // Ensure notification preferences are present
+      return migrateUserProfileNotificationPreferences(profile);
     },
     onSuccess: (updatedUserProfile, { id }) => {
       queryClient.setQueryData(queryKeys.userProfiles.byId(id), updatedUserProfile);

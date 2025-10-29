@@ -7,6 +7,7 @@ import { useActiveProtocolRun } from '../../../shared/hooks/useProtocolRuns';
 import { useActiveWashoutPeriod } from '../../../shared/hooks/useWashoutPeriods';
 import { Card } from '../../../shared/components/atoms/Card';
 import { LoadingSpinner } from '../../../shared/components/atoms/LoadingSpinner';
+import { NotificationIndicator } from '../../../shared/components/atoms/NotificationIndicator';
 
 export function JourneyScreen() {
   const { theme } = useTheme();
@@ -64,12 +65,23 @@ export function JourneyScreen() {
     }
   };
 
+  const handleNavigateToNotificationSettings = () => {
+    navigation.navigate('NotificationSettingsScreen');
+  };
+
   const isLoading = isLoadingProtocol || isLoadingWashout;
 
   return (
     <View style={containerStyle}>
       <Text style={titleStyle}>Jornada</Text>
       <Text style={subtitleStyle}>Acompanhe sua jornada de reintrodução FODMAP</Text>
+
+      {/* Notification Indicator - Task 11.4 */}
+      <NotificationIndicator
+        onPress={handleNavigateToNotificationSettings}
+        showBadgeCount={true}
+        style={{ marginBottom: spacing.lg }}
+      />
 
       {isLoading ? (
         <LoadingSpinner size="large" />

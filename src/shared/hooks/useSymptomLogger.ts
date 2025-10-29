@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../lib/queryClient';
 import { tablesDB, DATABASE_ID, TABLES, ID } from '../../infrastructure/api/appwrite';
 import type { SymptomEntry, SymptomType } from '../types/entities';
+import { notificationService } from '../../services/notifications/NotificationService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface LogSymptomInput {
   testStepId?: string;
@@ -98,7 +100,8 @@ export function useSymptomLogger(testStepId?: string): UseSymptomLoggerReturn {
         lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
       } as SymptomEntry;
     },
-    onSuccess: (newSymptomEntry) => {
+    onSuccess: async (newSymptomEntry) => {
+      // Invalidate queries
       queryClient.invalidateQueries({
         queryKey: queryKeys.symptomEntries.byTestStepId(newSymptomEntry.testStepId),
       });
@@ -109,6 +112,28 @@ export function useSymptomLogger(testStepId?: string): UseSymptomLoggerReturn {
         queryKey: queryKeys.symptomEntries.all,
       });
       queryClient.setQueryData(queryKeys.symptomEntries.byId(newSymptomEntry.id), newSymptomEntry);
+
+      // ============================================================================
+      // NOTIFICATION INTEGRATION (Task 11.1)
+      // ============================================================================
+
+      try {
+        // 1. Cancel daily reminder for today since symptoms were logged
+        // Requirements: 1.2
+        await notificationService.cancelDailyReminderForToday();
+
+        // 2. Track symptom logging for adherence analysis
+        // Requirements: 6.1
+        const userId = await AsyncStorage.getItem('@auth:userId');
+        if (userId) {
+          // Update adherence score after logging
+          // Requirements: 6.1
+          await notificationService.adjustNotificationFrequency(userId);
+        }
+      } catch (error) {
+        // Don't throw - notification integration is non-critical
+        console.error('Error integrating with notification service:', error);
+      }
     },
   });
 

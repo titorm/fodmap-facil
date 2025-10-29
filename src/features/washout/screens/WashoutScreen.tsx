@@ -13,13 +13,11 @@ interface WashoutScreenProps {
 }
 
 export function WashoutScreen({ protocolRunId }: WashoutScreenProps) {
-  const theme = useTheme();
+  const { theme } = useTheme();
   const {
-    washoutPeriod,
     isActive,
     daysRemaining,
     progress,
-    recommendedContent,
     isLoading,
   } = useWashout(protocolRunId);
 
@@ -50,7 +48,7 @@ export function WashoutScreen({ protocolRunId }: WashoutScreenProps) {
           <View
             style={[
               styles.progressFill,
-              { width: `${progress}%`, backgroundColor: theme.colors.primary },
+              { width: `${progress}%`, backgroundColor: theme.colors.primary500 },
             ]}
           />
         </View>

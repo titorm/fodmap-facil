@@ -6,6 +6,7 @@ import type {
   CreateProtocolRunInput,
   UpdateProtocolRunInput,
 } from '../types/entities';
+import { notificationService } from '../../services/notifications/NotificationService';
 
 /**
  * Hook to fetch all protocol runs for a specific user
@@ -154,9 +155,11 @@ export function useUpdateProtocolRun() {
     mutationFn: async ({
       id,
       data,
+      previousStatus,
     }: {
       id: string;
       data: UpdateProtocolRunInput;
+      previousStatus?: string;
     }): Promise<ProtocolRun> => {
       const rowData: any = { ...data };
       if (data.endDate) rowData.endDate = data.endDate.toISOString();
@@ -177,9 +180,10 @@ export function useUpdateProtocolRun() {
         createdAt: new Date(row.createdAt),
         updatedAt: new Date(row.updatedAt),
         lastSyncAttempt: row.lastSyncAttempt ? new Date(row.lastSyncAttempt) : undefined,
-      } as ProtocolRun;
+        previousStatus,
+      } as ProtocolRun & { previousStatus?: string };
     },
-    onSuccess: (updatedProtocolRun, { id }) => {
+    onSuccess: async (updatedProtocolRun, { id, data, previousStatus }) => {
       queryClient.setQueryData(queryKeys.protocolRuns.byId(id), updatedProtocolRun);
       queryClient.invalidateQueries({
         queryKey: queryKeys.protocolRuns.byUserId(updatedProtocolRun.userId),
@@ -187,6 +191,73 @@ export function useUpdateProtocolRun() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.protocolRuns.active(updatedProtocolRun.userId),
       });
+
+      // ============================================================================
+      // NOTIFICATION INTEGRATION (Task 11.3)
+      // ============================================================================
+
+      try {
+        // Handle protocol pause/resume
+        // Requirements: 4.4, 4.5
+
+        // If protocol was paused, cancel test start reminders
+        if (data.status === 'paused' && previousStatus === 'active') {
+          await notificationService.disableTestStartRemindersForProtocol(id);
+        }
+
+        // If protocol was resumed, re-enable test start reminders
+        if (data.status === 'active' && previousStatus === 'paused') {
+          // Fetch pending test steps for this protocol
+          const { rows: testSteps } = await tablesDB.listRows({
+            databaseId: DATABASE_ID,
+            tableId: TABLES.TEST_STEPS,
+            queries: [
+              Query.equal('protocolRunId', [id]),
+              Query.equal('status', ['pending']),
+              Query.orderAsc('scheduledDate'),
+            ],
+          });
+
+          // Map test steps to the format expected by the notification service
+          const pendingTests = testSteps.map((step: any) => ({
+            id: step.id,
+            foodItemId: step.foodItemId,
+            foodName: step.foodName,
+            protocolRunId: id,
+            availableDate: step.scheduledDate ? new Date(step.scheduledDate) : new Date(),
+          }));
+
+          await notificationService.enableTestStartRemindersForProtocol(id, pendingTests);
+        }
+
+        // Update schedules when protocol state changes
+        // Requirements: 4.1
+        if (data.status === 'active' && previousStatus !== 'active') {
+          // Protocol became active - schedule test start reminders for pending tests
+          const { rows: testSteps } = await tablesDB.listRows({
+            databaseId: DATABASE_ID,
+            tableId: TABLES.TEST_STEPS,
+            queries: [
+              Query.equal('protocolRunId', [id]),
+              Query.equal('status', ['pending']),
+              Query.orderAsc('scheduledDate'),
+            ],
+          });
+
+          for (const step of testSteps) {
+            await notificationService.scheduleTestStartReminder({
+              id: step.id,
+              foodItemId: step.foodItemId,
+              foodName: step.foodName,
+              protocolRunId: id,
+              availableDate: step.scheduledDate ? new Date(step.scheduledDate) : new Date(),
+            });
+          }
+        }
+      } catch (error) {
+        // Don't throw - notification integration is non-critical
+        console.error('Error integrating with notification service:', error);
+      }
     },
   });
 }

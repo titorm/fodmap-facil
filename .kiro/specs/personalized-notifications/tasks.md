@@ -1,0 +1,323 @@
+# Implementation Plan
+
+- [x] 1. Set up Expo Notifications infrastructure
+  - Install and configure `expo-notifications` package
+  - Create notification channel configuration for Android
+  - Set up notification handlers and listeners
+  - _Requirements: 9.1, 9.2, 9.4_
+
+- [x] 2. Implement core notification data models and types
+  - [x] 2.1 Create notification type definitions
+    - Define TypeScript interfaces for `ScheduledNotification`, `NotificationHistoryEntry`, `NotificationTrigger`
+    - Define enums for `NotificationType`, `NotificationAction`, `NotificationErrorCode`
+    - Export types from `src/services/notifications/types.ts`
+    - _Requirements: 1.1, 2.1, 3.1, 4.1_
+  - [x] 2.2 Extend UserProfile entity with notification preferences
+    - Add `notificationPreferences` field to `UserProfile` interface in `src/shared/types/entities.ts`
+    - Create migration helper to add default preferences to existing profiles
+    - Update `useUserProfile` hook to handle new fields
+    - _Requirements: 5.1, 7.2, 8.3_
+
+- [x] 3. Create NotificationPreferencesStore with Zustand
+  - [x] 3.1 Implement preferences store
+    - Create `src/shared/stores/notificationPreferencesStore.ts`
+    - Define state interface with all preference fields
+    - Implement actions for updating preferences
+    - Add persistence with AsyncStorage
+    - _Requirements: 5.1, 8.1, 8.3_
+  - [x] 3.2 Create store selectors and hooks
+    - Create selector functions for common queries
+    - Create custom hooks for accessing preferences
+    - Add TypeScript type safety for all selectors
+    - _Requirements: 8.1, 8.2_
+
+- [x] 4. Implement NotificationService core functionality
+  - [x] 4.1 Create permission management methods
+    - Implement `requestPermission()` with Expo Notifications API
+    - Implement `checkPermission()` to query current status
+    - Implement `openSettings()` to guide users to device settings
+    - Handle permission status changes and update store
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+  - [x] 4.2 Implement basic notification scheduling
+    - Create `schedule()` method with trigger configuration
+    - Create `cancel()` and `cancelAll()` methods
+    - Implement notification ID tracking in AsyncStorage
+    - Add error handling for scheduling failures
+    - _Requirements: 1.1, 9.1, 9.2_
+  - [x] 4.3 Implement notification response handlers
+    - Set up notification received listener
+    - Set up notification tapped listener
+    - Implement deep linking to relevant screens
+    - Track notification actions in history
+    - _Requirements: 9.4, 10.3_
+
+- [x] 5. Implement NotificationScheduler with quiet hours support
+  - [x] 5.1 Create scheduling logic with triggers
+    - Implement daily trigger calculation
+    - Implement one-time trigger calculation
+    - Implement batch scheduling for multiple notifications
+    - Add validation for trigger times
+    - _Requirements: 1.1, 2.1, 2.2_
+  - [x] 5.2 Implement QuietHoursManager
+    - Create `src/services/notifications/QuietHoursManager.ts`
+    - Implement `isInQuietHours()` time checking logic
+    - Implement `adjustForQuietHours()` to defer notifications
+    - Implement `shouldOverrideQuietHours()` for critical notifications
+    - Handle midnight boundary cases
+    - _Requirements: 5.2, 5.3, 5.4_
+  - [x] 5.3 Integrate quiet hours into scheduler
+    - Check quiet hours before scheduling
+    - Adjust notification times automatically
+    - Store original and adjusted times
+    - Notify user when times are adjusted
+    - _Requirements: 5.2, 5.3_
+
+- [x] 6. Implement protocol-specific notification scheduling
+  - [x] 6.1 Implement daily symptom reminder scheduling
+    - Create `scheduleDailyReminder()` method
+    - Use daily repeating trigger at user's preferred time
+    - Cancel reminder when symptoms are logged for the day
+    - Respect quiet hours and adaptive frequency
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
+  - [x] 6.2 Implement dose reminder scheduling
+    - Create `scheduleDoseReminder()` method
+    - Schedule pre-dose notification (30 min before)
+    - Schedule dose-time notification with action buttons
+    - Implement snooze functionality (15 min)
+    - Cancel reminders when dose is marked as taken
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
+  - [x] 6.3 Implement washout notification scheduling
+    - Create `scheduleWashoutNotifications()` method
+    - Schedule washout start notification
+    - Schedule 24-hour warning before end
+    - Schedule washout end notification
+    - Update notifications if washout is extended
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+  - [x] 6.4 Implement test start reminder scheduling
+    - Create `scheduleTestStartReminder()` method
+    - Schedule notification when new test is available
+    - Schedule follow-up reminder after 48 hours if not started
+    - Respect protocol pause status
+    - Re-enable when protocol is resumed
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
+
+- [x] 7. Implement AdherenceAnalyzer for adaptive notifications
+  - [x] 7.1 Create adherence calculation logic
+    - Create `src/services/notifications/AdherenceAnalyzer.ts`
+    - Implement `calculateAdherenceScore()` using 14-day window
+    - Calculate daily log streak from symptom entries
+    - Calculate dose timing accuracy from test steps
+    - Calculate missed vs total reminders ratio
+    - _Requirements: 6.1, 6.2, 6.4_
+  - [x] 7.2 Implement pattern detection
+    - Implement `detectPatterns()` to identify user behavior
+    - Detect consistent, improving, declining, or irregular patterns
+    - Calculate confidence scores for patterns
+    - Generate recommendations based on patterns
+    - _Requirements: 6.1, 6.2, 6.3_
+  - [x] 7.3 Implement frequency adjustment logic
+    - Implement `recommendNotificationFrequency()` based on score
+    - Implement `shouldReduceReminders()` for engaged users
+    - Implement `shouldIncreaseReminders()` for disengaged users
+    - Create `adjustNotificationFrequency()` to apply changes
+    - _Requirements: 6.1, 6.2, 6.3, 6.5_
+  - [x] 7.4 Integrate adaptive behavior into scheduling
+    - Check adherence before scheduling reminders
+    - Apply frequency adjustments automatically
+    - Allow manual override of adaptive behavior
+    - Store current frequency in preferences
+    - _Requirements: 6.1, 6.2, 6.5_
+
+- [x] 8. Implement notification history tracking
+  - [x] 8.1 Create NotificationHistoryRepository
+    - Create `src/services/notifications/NotificationHistoryRepository.ts`
+    - Implement `create()` to record delivered notifications
+    - Implement `update()` to track actions
+    - Implement `list()` with filtering by type and date range
+    - Implement `delete()` to remove old entries (>30 days)
+    - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
+  - [x] 8.2 Integrate history tracking into NotificationService
+    - Record notification delivery in history
+    - Record notification actions (opened, dismissed, actioned)
+    - Link notifications to related entities (test steps, washouts)
+    - Implement automatic cleanup of old history
+    - _Requirements: 10.1, 10.3_
+
+- [x] 9. Build notification settings UI
+  - [x] 9.1 Create NotificationSettingsScreen
+    - Create `src/features/settings/screens/NotificationSettingsScreen.tsx`
+    - Display permission status with request button
+    - Add toggle switches for each notification type
+    - Add time picker for daily reminder
+    - Add quiet hours configuration section
+    - Add adaptive frequency toggle
+    - _Requirements: 7.1, 8.1, 8.2, 5.1_
+  - [x] 9.2 Create PermissionRequestModal component
+    - Create `src/features/settings/components/PermissionRequestModal.tsx`
+    - Display clear explanation of notification benefits
+    - Show permission request button
+    - Handle grant/deny outcomes
+    - Provide settings guide for denied permission
+    - _Requirements: 7.1, 7.3, 7.5_
+  - [x] 9.3 Create QuietHoursConfig component
+    - Create `src/features/settings/components/QuietHoursConfig.tsx`
+    - Add time pickers for start and end times
+    - Add toggle for allowing critical notifications
+    - Display preview of quiet hours period
+    - Validate that end time is after start time
+    - _Requirements: 5.1, 5.4_
+  - [x] 9.4 Implement settings persistence
+    - Save preference changes to NotificationPreferencesStore
+    - Sync preferences to UserProfile in Appwrite
+    - Apply changes immediately (reschedule notifications)
+    - Show loading states during save operations
+    - _Requirements: 8.3, 5.1_
+
+- [x] 10. Build notification history UI
+  - [x] 10.1 Create NotificationHistoryScreen
+    - Create `src/features/settings/screens/NotificationHistoryScreen.tsx`
+    - Display list of notifications from past 30 days
+    - Show notification type, time, and action status
+    - Implement filtering by notification type
+    - Add pull-to-refresh functionality
+    - _Requirements: 10.2, 10.4_
+  - [x] 10.2 Create NotificationHistoryCard component
+    - Create `src/features/settings/components/NotificationHistoryCard.tsx`
+    - Display notification icon based on type
+    - Show title, body, and timestamp
+    - Indicate if notification was actioned
+    - Add tap handler to navigate to related entity
+    - _Requirements: 10.2, 10.3_
+
+- [x] 11. Integrate notifications with existing features
+  - [x] 11.1 Integrate with symptom logging
+    - Cancel daily reminder when symptoms are logged
+    - Track symptom logging for adherence analysis
+    - Update adherence score after logging
+    - _Requirements: 1.2, 6.1_
+  - [x] 11.2 Integrate with test wizard
+    - Schedule dose reminders when test step is created
+    - Cancel dose reminders when dose is marked taken
+    - Track dose timing for adherence analysis
+    - Schedule washout notifications after test completion
+    - _Requirements: 2.2, 2.3, 3.1, 6.2_
+  - [x] 11.3 Integrate with protocol state management
+    - Schedule test start reminders when tests become available
+    - Cancel reminders when protocol is paused
+    - Re-enable reminders when protocol is resumed
+    - Update schedules when protocol state changes
+    - _Requirements: 4.1, 4.4, 4.5_
+  - [x] 11.4 Add notification indicators to dashboard
+    - Show badge count for pending actions
+    - Display in-app alerts when notifications are disabled
+    - Show sync status for notification preferences
+    - _Requirements: 7.3_
+
+- [x] 12. Implement error handling and fallbacks
+  - [x] 12.1 Create NotificationError class
+    - Define error codes enum
+    - Create custom error class with code and details
+    - Implement error logging
+    - _Requirements: 9.1, 9.2_
+  - [x] 12.2 Implement retry logic
+    - Add exponential backoff for scheduling failures
+    - Queue failed operations for retry
+    - Implement sync retry on network reconnect
+    - _Requirements: 9.2_
+  - [x] 12.3 Implement graceful degradation
+    - Show in-app alerts when notifications are disabled
+    - Display dashboard badges for pending actions
+    - Provide manual reminder options
+    - _Requirements: 7.3_
+
+- [x] 13. Add notification action buttons
+  - [x] 13.1 Configure notification categories
+    - Create category for dose reminders with "Mark Taken" and "Snooze" actions
+    - Create category for daily reminders with "Log Now" action
+    - Register categories with Expo Notifications
+    - _Requirements: 2.4_
+  - [x] 13.2 Implement action handlers
+    - Handle "Mark Taken" action to update test step
+    - Handle "Snooze" action to reschedule notification
+    - Handle "Log Now" action to open symptom logging screen
+    - Track actions in notification history
+    - _Requirements: 2.4, 10.3_
+
+- [ ]\* 14. Write comprehensive tests
+  - [ ]\* 14.1 Write unit tests for NotificationScheduler
+    - Test quiet hours detection across midnight boundary
+    - Test trigger calculation for daily/weekly repeats
+    - Test batch scheduling and cancellation
+    - Test time adjustment logic
+    - _Requirements: 5.2, 5.3_
+  - [ ]\* 14.2 Write unit tests for AdherenceAnalyzer
+    - Test adherence score calculation with various patterns
+    - Test pattern detection algorithms
+    - Test frequency recommendation logic
+    - Test edge cases (no data, incomplete data)
+    - _Requirements: 6.1, 6.2, 6.3_
+  - [ ]\* 14.3 Write integration tests for NotificationService
+    - Test permission request flow
+    - Test scheduling with quiet hours
+    - Test adaptive frequency adjustment
+    - Test notification cancellation
+    - _Requirements: 7.1, 5.2, 6.1_
+  - [ ]\* 14.4 Write E2E tests for notification flows
+    - Test complete user journey from onboarding to receiving notifications
+    - Test background notification delivery
+    - Test notification actions and deep linking
+    - Test settings changes and immediate effect
+    - _Requirements: 1.1, 2.1, 3.1, 4.1, 9.4_
+
+- [x] 15. Optimize performance and battery usage
+  - [x] 15.1 Implement efficient scheduling
+    - Pre-calculate notification times for entire protocol
+    - Batch notification operations
+    - Minimize AsyncStorage reads/writes
+    - _Requirements: 9.1, 9.2_
+  - [x] 15.2 Implement storage optimization
+    - Compress notification data in AsyncStorage
+    - Implement automatic cleanup of old history
+    - Lazy-load history on demand
+    - _Requirements: 10.5_
+  - [x] 15.3 Add monitoring and analytics
+    - Track notification delivery rate
+    - Track notification action rate
+    - Track permission grant/deny rate
+    - Track adherence score distribution
+    - _Requirements: 10.1_
+
+- [x] 16. Add internationalization support
+  - [x] 16.1 Add notification text to i18n files
+    - Add all notification titles and bodies to `en.json` and `pt.json`
+    - Add settings screen labels and descriptions
+    - Add error messages
+    - _Requirements: 1.1, 2.1, 3.1, 4.1_
+  - [x] 16.2 Implement locale-aware time formatting
+    - Use device locale for time display
+    - Support 12/24 hour format
+    - Format dates according to locale
+    - _Requirements: 5.1, 10.2_
+
+- [x] 17. Final integration and polish
+  - [x] 17.1 Add notification settings to main settings screen
+    - Add navigation to NotificationSettingsScreen
+    - Add notification history navigation
+    - Show permission status indicator
+    - _Requirements: 8.1_
+  - [x] 17.2 Add onboarding notification prompt
+    - Show permission request during onboarding
+    - Explain benefits clearly
+    - Allow skip with option to enable later
+    - _Requirements: 7.1_
+  - [x] 17.3 Update app.json with notification configuration
+    - Add notification permissions for iOS
+    - Configure notification icon for Android
+    - Set notification sound preferences
+    - _Requirements: 9.1_
+  - [x] 17.4 Add accessibility improvements
+    - Add screen reader labels to all settings
+    - Ensure high contrast for toggles
+    - Add large touch targets
+    - Test with VoiceOver/TalkBack
+    - _Requirements: 8.1_

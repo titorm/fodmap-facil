@@ -7,6 +7,7 @@ import { AssessmentQuestion } from '../components/AssessmentQuestion';
 import { Button } from '../../../shared/components/atoms/Button';
 import { useTheme } from '../../../shared/theme';
 import { useOnboarding } from '../hooks/useOnboarding';
+import { NotificationOnboardingPrompt } from '../components/NotificationOnboardingPrompt';
 import {
   ASSESSMENT_QUESTIONS,
   calculateAssessmentScore,
@@ -31,6 +32,7 @@ export function ReadinessAssessmentScreen({}: ReadinessAssessmentScreenProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
 
   const currentQuestion = ASSESSMENT_QUESTIONS[currentQuestionIndex];
   const isFirstQuestion = currentQuestionIndex === 0;
@@ -123,12 +125,18 @@ export function ReadinessAssessmentScreen({}: ReadinessAssessmentScreenProps) {
   }, [answers, completeAssessment, t]);
 
   // Handle starting journey after assessment
-  const handleStartJourney = useCallback(async () => {
+  const handleStartJourney = useCallback(() => {
+    // Show notification prompt before completing onboarding
+    setShowNotificationPrompt(true);
+  }, []);
+
+  // Handle notification prompt completion
+  const handleNotificationPromptComplete = useCallback(async () => {
+    setShowNotificationPrompt(false);
+
     try {
       await completeOnboarding();
       // Navigate to main app (this will be handled by navigation logic)
-      // For now, we'll just show an alert
-      Alert.alert('Success', 'Onboarding completed! Welcome to your FODMAP journey.');
     } catch (error) {
       console.error('Error completing onboarding:', error);
       Alert.alert(t('common.error'), 'Failed to complete onboarding. Please try again.');
@@ -274,6 +282,12 @@ export function ReadinessAssessmentScreen({}: ReadinessAssessmentScreenProps) {
             fullWidth
           />
         </ScrollView>
+
+        {/* Notification Onboarding Prompt */}
+        <NotificationOnboardingPrompt
+          visible={showNotificationPrompt}
+          onComplete={handleNotificationPromptComplete}
+        />
       </SafeAreaView>
     );
   }

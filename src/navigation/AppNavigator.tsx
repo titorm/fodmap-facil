@@ -22,6 +22,10 @@ import {
   TestDayScreen,
   TestCompleteScreen,
 } from '../features/test-wizard/screens';
+import {
+  NotificationSettingsScreen,
+  NotificationHistoryScreen,
+} from '../features/settings/screens';
 import { QuickSymptomEntryModal } from '../features/diary/components/QuickSymptomEntryModal';
 import { WashoutScreen } from '../features/washout/screens/WashoutScreen';
 import { useTheme } from '../shared/theme';
@@ -31,6 +35,7 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const TestWizardStack = createNativeStackNavigator();
+const ProfileStack = createNativeStackNavigator();
 
 // Navigation param types
 export type RootStackParamList = {
@@ -63,6 +68,45 @@ export type TestWizardStackParamList = {
     testStepId: string;
   };
 };
+
+function ProfileStackNavigator() {
+  const { theme } = useTheme();
+  const { colors } = theme;
+
+  return (
+    <ProfileStack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.surface,
+        },
+        headerTintColor: colors.text,
+        headerShadowVisible: false,
+      }}
+    >
+      <ProfileStack.Screen
+        name="ProfileMain"
+        component={ProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <ProfileStack.Screen
+        name="NotificationSettings"
+        component={NotificationSettingsScreen}
+        options={{
+          title: 'Configurações de Notificações',
+          headerBackTitle: 'Voltar',
+        }}
+      />
+      <ProfileStack.Screen
+        name="NotificationHistory"
+        component={NotificationHistoryScreen}
+        options={{
+          title: 'Histórico de Notificações',
+          headerBackTitle: 'Voltar',
+        }}
+      />
+    </ProfileStack.Navigator>
+  );
+}
 
 function MainTabs() {
   const { theme } = useTheme();
@@ -131,7 +175,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Perfil"
-        component={ProfileScreen}
+        component={ProfileStackNavigator}
         options={{
           tabBarLabel: 'Perfil',
           tabBarAccessibilityLabel: 'Profile tab - Manage your account and settings',
@@ -172,9 +216,9 @@ function TestStartScreenWrapper({ route, navigation }: any) {
 
 // Wrapper component for WashoutScreen to integrate with navigation
 function WashoutScreenWrapper({ route }: any) {
-  const { washoutPeriodId, userId } = route.params;
+  const { protocolRunId } = route.params;
 
-  return <WashoutScreen washoutPeriodId={washoutPeriodId} userId={userId} />;
+  return <WashoutScreen protocolRunId={protocolRunId} />;
 }
 
 function TestDayScreenWrapper({ route, navigation }: any) {

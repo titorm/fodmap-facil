@@ -3,6 +3,8 @@
  * Estes tipos são independentes do banco de dados e representam o modelo de domínio
  */
 
+import type { NotificationFrequency } from '../../services/notifications/types';
+
 /**
  * Enum Types
  */
@@ -17,6 +19,25 @@ export type WashoutPeriodStatus = 'pending' | 'active' | 'completed';
 export type SyncStatus = 'pending' | 'synced' | 'error';
 
 /**
+ * Notification Preferences
+ */
+export interface NotificationPreferences {
+  permissionGranted: boolean;
+  dailyReminderEnabled: boolean;
+  dailyReminderTime: string | null; // ISO time string "HH:mm"
+  doseReminderEnabled: boolean;
+  doseReminderAdvanceMinutes: number;
+  washoutNotificationsEnabled: boolean;
+  testStartReminderEnabled: boolean;
+  quietHoursEnabled: boolean;
+  quietHoursStart: string | null; // "HH:mm"
+  quietHoursEnd: string | null; // "HH:mm"
+  quietHoursAllowCritical: boolean;
+  adaptiveFrequencyEnabled: boolean;
+  currentFrequency: NotificationFrequency;
+}
+
+/**
  * UserProfile Entity
  */
 export interface UserProfile {
@@ -25,6 +46,7 @@ export interface UserProfile {
   name: string;
   languagePreference: string;
   themePreference: string;
+  notificationPreferences?: NotificationPreferences;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +57,7 @@ export interface CreateUserProfileInput {
   name: string;
   languagePreference?: string;
   themePreference?: string;
+  notificationPreferences?: NotificationPreferences;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +66,7 @@ export interface UpdateUserProfileInput {
   name?: string;
   languagePreference?: string;
   themePreference?: string;
+  notificationPreferences?: NotificationPreferences;
   updatedAt: Date;
 }
 

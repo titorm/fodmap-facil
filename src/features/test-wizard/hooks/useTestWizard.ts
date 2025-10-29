@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tantml:parameter>
 import { queryKeys } from '../../../lib/queryClient';
 import { tablesDB, DATABASE_ID, TABLES, ID } from '../../../infrastructure/api/appwrite';
 import type { TestStep, SymptomEntry, FoodItem } from '../../../shared/types/entities';
 import type { SymptomRecord } from '../../../engine/fodmapEngine/types';
+import { notificationService } from '../../../services/notifications/NotificationService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface UseTestWizardReturn {
   // Current test state
@@ -159,6 +161,35 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
     setDoses(doseInfo);
   }, [testStep, foodItem, symptoms]);
 
+  // ============================================================================
+  // NOTIFICATION INTEGRATION (Task 11.2)
+  // Schedule dose reminders when test step is created
+  // Requirements: 2.2
+  // ============================================================================
+  useEffect(() => {
+    if (!testStep || !foodItem) return;
+
+    // Only schedule if test is pending or in progress and has a scheduled date
+    if (
+      (testStep.status === 'pending' || testStep.status === 'in_progress') &&
+      testStep.scheduledDate
+    ) {
+      // Schedule dose reminders for the test step
+      notificationService
+        .scheduleDoseReminder({
+          id: testStep.id,
+          scheduledDate: testStep.scheduledDate,
+          foodItemId: foodItem.id,
+          foodName: foodItem.name,
+          doseAmount: getPortionSizeForDay(foodItem.fodmapGroup, 1),
+        })
+        .catch((error) => {
+          // Don't throw - notification scheduling is non-critical
+          console.error('Error scheduling dose reminders:', error);
+        });
+    }
+  }, [testStep?.id, testStep?.status, testStep?.scheduledDate, foodItem?.id, foodItem?.name]);
+
   // Calculate current day
   const currentDay = useMemo(() => {
     const lastConsumedDay = doses.findIndex((d) => !d.consumed);
@@ -222,8 +253,28 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
         updatedAt: new Date(row.updatedAt),
       } as unknown as TestStep;
     },
-    onSuccess: () => {
+    onSuccess: async (updatedTestStep) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.testSteps.byId(testStepId) });
+
+      // ============================================================================
+      // NOTIFICATION INTEGRATION (Task 11.2)
+      // ============================================================================
+
+      try {
+        // Cancel dose reminders when dose is marked as taken
+        // Requirements: 2.3
+        await notificationService.cancelDoseReminders(updatedTestStep.id);
+
+        // Track dose timing for adherence analysis
+        // Requirements: 6.2
+        const userId = await AsyncStorage.getItem('@auth:userId');
+        if (userId) {
+          await notificationService.adjustNotificationFrequency(userId);
+        }
+      } catch (error) {
+        // Don't throw - notification integration is non-critical
+        console.error('Error integrating with notification service:', error);
+      }
     },
   });
 
@@ -275,11 +326,39 @@ export function useTestWizard(testStepId: string): UseTestWizardReturn {
 
       return testStep;
     },
-    onSuccess: () => {
+    onSuccess: async (updatedTestStep) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.testSteps.byId(testStepId) });
       queryClient.invalidateQueries({
         queryKey: queryKeys.symptomEntries.byTestStepId(testStepId),
       });
+
+      // ============================================================================
+      // NOTIFICATION INTEGRATION (Task 11.2)
+      // ============================================================================
+
+      try {
+        // If test is completed (day 3), schedule washout notifications
+        // Requirements: 3.1
+        if (updatedTestStep.status === 'completed' && testStep) {
+          // Calculate washout period (typically 3-7 days after test completion)
+          const washoutStartDate = new Date(updatedTestStep.completedDate || new Date());
+          washoutStartDate.setDate(washoutStartDate.getDate() + 1); // Start next day
+
+          const washoutEndDate = new Date(washoutStartDate);
+          washoutEndDate.setDate(washoutEndDate.getDate() + 3); // 3-day washout
+
+          // Schedule washout notifications
+          await notificationService.scheduleWashoutNotifications({
+            id: `washout_${updatedTestStep.id}`,
+            startDate: washoutStartDate,
+            endDate: washoutEndDate,
+            protocolRunId: testStep.protocolRunId || 'default',
+          });
+        }
+      } catch (error) {
+        // Don't throw - notification integration is non-critical
+        console.error('Error scheduling washout notifications:', error);
+      }
     },
   });
 
