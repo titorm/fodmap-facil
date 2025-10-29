@@ -23,6 +23,7 @@ import {
   TestCompleteScreen,
 } from '../features/test-wizard/screens';
 import { QuickSymptomEntryModal } from '../features/diary/components/QuickSymptomEntryModal';
+import { WashoutScreen } from '../features/washout/screens/WashoutScreen';
 import { useTheme } from '../shared/theme';
 import { subscribeToDeepLinks, type DeepLinkAction } from './deepLinking';
 
@@ -41,6 +42,10 @@ export type RootStackParamList = {
     foodItem: string;
     fodmapGroup: string;
     testSequence: number;
+  };
+  WashoutScreen: {
+    washoutPeriodId: string;
+    userId: string;
   };
 };
 
@@ -165,6 +170,13 @@ function TestStartScreenWrapper({ route, navigation }: any) {
   );
 }
 
+// Wrapper component for WashoutScreen to integrate with navigation
+function WashoutScreenWrapper({ route }: any) {
+  const { washoutPeriodId, userId } = route.params;
+
+  return <WashoutScreen washoutPeriodId={washoutPeriodId} userId={userId} />;
+}
+
 function TestDayScreenWrapper({ route, navigation }: any) {
   const { testStepId } = route.params;
   const [symptomModalVisible, setSymptomModalVisible] = useState(false);
@@ -260,6 +272,15 @@ export function AppNavigator() {
           });
         }
         break;
+      case 'washout':
+        // Navigate to washout screen if navigation is ready
+        if (navigationRef.current?.isReady()) {
+          navigationRef.current.navigate('WashoutScreen', {
+            washoutPeriodId: action.washoutPeriodId,
+            userId: action.userId,
+          });
+        }
+        break;
       case 'navigate':
         // Navigate to specific screen if navigation is ready
         if (navigationRef.current?.isReady()) {
@@ -288,6 +309,7 @@ export function AppNavigator() {
       screens: {
         Main: 'main',
         TestWizardFlow: 'test/:testStepId',
+        WashoutScreen: 'washout/:washoutPeriodId',
       },
     },
   };
@@ -315,6 +337,16 @@ export function AppNavigator() {
                 options={{
                   presentation: 'modal',
                   animation: 'slide_from_bottom',
+                }}
+              />
+              {/* Washout Screen */}
+              <Stack.Screen
+                name="WashoutScreen"
+                component={WashoutScreenWrapper}
+                options={{
+                  presentation: 'card',
+                  animation: 'slide_from_right',
+                  headerShown: false,
                 }}
               />
             </>

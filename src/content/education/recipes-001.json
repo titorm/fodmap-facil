@@ -1,0 +1,24 @@
+{
+    "id": "recipes-001",
+    "title": "Quick Low-FODMAP Breakfast Bowl",
+    "summary": "A delicious and nutritious breakfast that's safe during your washout period and takes only 10 minutes to prepare.",
+    "content": "# Quick Low-FODMAP Breakfast Bowl\n\n## Ingredients\n\n- 1 cup cooked quinoa or rice\n- 1 medium banana, sliced\n- 1/4 cup blueberries\n- 1 tablespoon peanut butter (check for no added garlic/onion)\n- 1 tablespoon maple syrup\n- Pinch of cinnamon\n- Lactose-free milk or almond milk (small serving)\n\n## Instructions\n\n1. Warm the cooked quinoa or rice in the microwave for 1-2 minutes\n2. Top with sliced banana and blueberries\n3. Drizzle with peanut butter and maple syrup\n4. Sprinkle with cinnamon\n5. Add a splash of lactose-free milk if desired\n\n## Nutrition Notes\n\nThis bowl provides sustained energy with complex carbohydrates, healthy fats, and natural sweetness. All ingredients are low-FODMAP in the portions listed.\n\n## Variations\n\n- Swap banana for strawberries (limit to 5 medium berries)\n- Use almond butter instead of peanut butter\n- Add a sprinkle of chia seeds for extra fiber",
+    "category": "recipes",
+    "tags": [
+        "breakfast",
+        "quick-meals",
+        "meal-prep",
+        "beginner-friendly"
+    ],
+    "difficultyLevel": "beginner",
+    "targetAnxietyLevels": [
+        "low",
+        "medium",
+        "high"
+    ],
+    "potentiallyStressful": false,
+    "estimatedReadTimeMinutes": 4,
+    "createdAt": "2025-01-16T09:00:00Z",
+    "updatedAt": "2025-01-16T09:00:00Z",
+    "author": "FODMAP Nutrition Team"
+}

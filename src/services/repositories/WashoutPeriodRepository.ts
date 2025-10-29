@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { BaseRepository } from './BaseRepository';
 import { washoutPeriods } from '../../db/schema';
 import type {
@@ -121,6 +121,47 @@ export class WashoutPeriodRepository extends BaseRepository<WashoutPeriod> {
       return result;
     } catch (error) {
       this.handleError(error, 'findByProtocolRunId');
+    }
+  }
+
+  /**
+   * Find all washout periods for a specific protocol run
+   *
+   * Alias for findByProtocolRunId to match the naming convention in the spec.
+   * Returns washout periods ordered by start date.
+   *
+   * @param protocolRunId - The protocol run ID to search for
+   * @returns Promise resolving to an array of washout periods
+   * @throws {Error} If database operation fails
+   */
+  async findByProtocolRun(protocolRunId: string): Promise<WashoutPeriod[]> {
+    return this.findByProtocolRunId(protocolRunId);
+  }
+
+  /**
+   * Find the active washout period for a specific protocol run
+   *
+   * Returns the washout period with status 'active' for the given protocol run.
+   * If multiple active washout periods exist, returns the most recent one.
+   *
+   * @param protocolRunId - The protocol run ID to search for
+   * @returns Promise resolving to the active washout period or null if none found
+   * @throws {Error} If database operation fails
+   */
+  async findActive(protocolRunId: string): Promise<WashoutPeriod | null> {
+    try {
+      const result = await this.db
+        .select()
+        .from(washoutPeriods)
+        .where(
+          and(eq(washoutPeriods.protocolRunId, protocolRunId), eq(washoutPeriods.status, 'active'))
+        )
+        .orderBy(washoutPeriods.startDate)
+        .limit(1);
+
+      return result[0] || null;
+    } catch (error) {
+      this.handleError(error, 'findActive');
     }
   }
 

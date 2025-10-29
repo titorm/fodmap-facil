@@ -1,0 +1,24 @@
+{
+    "id": "fodmap-guidance-001",
+    "title": "Understanding Washout Periods",
+    "summary": "Learn why washout periods are essential for accurate FODMAP testing and what to expect during this phase.",
+    "content": "# Understanding Washout Periods\n\n## What is a Washout Period?\n\nA washout period is a break between FODMAP reintroduction tests where you return to a strict low-FODMAP diet. This allows your digestive system to reset and ensures accurate results for your next test.\n\n## Why Are They Important?\n\nWithout washout periods, symptoms from one test food could overlap with the next, making it impossible to identify which foods are causing your reactions.\n\n## How Long Should They Last?\n\nTypically 3-7 days, depending on:\n- Severity of your reaction to the previous test\n- Your individual symptom patterns\n- Guidance from your healthcare provider\n\n## What to Do During Washout\n\n1. **Return to baseline**: Eat only foods you know are safe\n2. **Track symptoms**: Continue monitoring even if you feel fine\n3. **Stay hydrated**: Drink plenty of water\n4. **Rest and recover**: Give your body time to heal\n\n## When to Extend Your Washout\n\nIf symptoms persist beyond 3 days, extend your washout period until you return to your baseline symptom level. This is completely normal and shows you're listening to your body.\n\n## Moving Forward\n\nOnce your symptoms have resolved and you feel back to baseline, you're ready to begin your next reintroduction test with confidence.",
+    "category": "fodmap-guidance",
+    "tags": [
+        "washout",
+        "protocol-basics",
+        "testing-process",
+        "symptom-management"
+    ],
+    "difficultyLevel": "beginner",
+    "targetAnxietyLevels": [
+        "low",
+        "medium",
+        "high"
+    ],
+    "potentiallyStressful": false,
+    "estimatedReadTimeMinutes": 6,
+    "createdAt": "2025-01-14T14:00:00Z",
+    "updatedAt": "2025-01-14T14:00:00Z",
+    "author": "FODMAP Nutrition Team"
+}

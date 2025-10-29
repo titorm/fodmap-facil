@@ -1,14 +1,26 @@
 import React from 'react';
 import { View, Text, FlatList, ViewStyle, TextStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 import { Card } from '../../../shared/components/atoms';
 import { useTheme } from '../../../shared/theme';
+import { useAuth } from '../../../shared/hooks/useAuth';
+import { useActiveProtocolRun } from '../../../shared/hooks/useProtocolRuns';
+import { useActiveWashoutPeriod } from '../../../shared/hooks/useWashoutPeriods';
 import { FODMAPGroup } from '../../../core/domain/entities/ReintroductionTest';
 
 export const ReintroductionHomeScreen: React.FC = () => {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { colors, spacing, typography } = theme;
+  const navigation = useNavigation<any>();
+  const { user } = useAuth();
+
+  // Fetch active protocol run
+  const { data: activeProtocolRun } = useActiveProtocolRun(user?.id || '');
+
+  // Fetch active washout period if there's an active protocol run
+  const { data: activeWashout } = useActiveWashoutPeriod(activeProtocolRun?.id || '');
 
   const fodmapGroups = [
     { id: FODMAPGroup.FRUCTOSE, name: t('reintroduction.foodGroups.fructose') },
@@ -60,6 +72,22 @@ export const ReintroductionHomeScreen: React.FC = () => {
     color: colors.textSecondary,
   };
 
+  const washoutCardStyle: ViewStyle = {
+    marginBottom: spacing.lg,
+    backgroundColor: colors.primary100,
+    borderColor: colors.primary500,
+    borderWidth: 2,
+  };
+
+  const handleNavigateToWashout = () => {
+    if (activeWashout && user) {
+      navigation.navigate('WashoutScreen', {
+        washoutPeriodId: activeWashout.id,
+        userId: user.id,
+      });
+    }
+  };
+
   const renderFodmapCard = ({ item }: { item: (typeof fodmapGroups)[0] }) => (
     <Card
       style={cardStyle}
@@ -87,6 +115,21 @@ export const ReintroductionHomeScreen: React.FC = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={listStyle}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          activeWashout ? (
+            <Card
+              style={washoutCardStyle}
+              onPress={handleNavigateToWashout}
+              accessibilityLabel="Active washout period"
+              accessibilityHint="Tap to view your washout period details"
+            >
+              <Text style={cardTitleStyle}>🕐 Período de Washout Ativo</Text>
+              <Text style={cardSubtitleStyle}>
+                Toque para ver o cronômetro e conteúdo educacional
+              </Text>
+            </Card>
+          ) : null
+        }
       />
     </View>
   );

@@ -7,6 +7,7 @@ import { Linking } from 'react-native';
  * - fodmap://symptom/quick - Open quick symptom entry modal
  * - fodmap://symptom/quick?testStepId=123 - Open quick symptom entry with test step
  * - fodmap://test/123 - Open test wizard for test step 123
+ * - fodmap://washout/123?userId=456 - Open washout screen for washout period 123
  * - fodmap://home - Navigate to home tab
  * - fodmap://diary - Navigate to diary tab
  */
@@ -14,6 +15,7 @@ import { Linking } from 'react-native';
 export type DeepLinkAction =
   | { type: 'quick_symptom'; testStepId?: string }
   | { type: 'test_wizard'; testStepId: string }
+  | { type: 'washout'; washoutPeriodId: string; userId: string }
   | { type: 'navigate'; screen: string };
 
 /**
@@ -34,6 +36,17 @@ export function parseDeepLink(url: string): DeepLinkAction | null {
     const testMatch = path.match(/\/test\/([^/]+)/);
     if (testMatch) {
       return { type: 'test_wizard', testStepId: testMatch[1] };
+    }
+
+    // Washout screen
+    const washoutMatch = path.match(/\/washout\/([^/]+)/);
+    if (washoutMatch) {
+      const userId = urlObj.searchParams.get('userId');
+      if (!userId) {
+        console.error('Washout deep link missing required userId parameter');
+        return null;
+      }
+      return { type: 'washout', washoutPeriodId: washoutMatch[1], userId };
     }
 
     // Navigation
@@ -112,6 +125,13 @@ export function createQuickSymptomDeepLink(testStepId?: string): string {
  */
 export function createTestWizardDeepLink(testStepId: string): string {
   return `fodmap://test/${testStepId}`;
+}
+
+/**
+ * Create a deep link URL for washout screen
+ */
+export function createWashoutDeepLink(washoutPeriodId: string, userId: string): string {
+  return `fodmap://washout/${washoutPeriodId}?userId=${userId}`;
 }
 
 /**

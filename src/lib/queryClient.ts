@@ -109,6 +109,8 @@ export const queryKeys = {
     byId: (id: string) => [...queryKeys.washoutPeriods.all, id] as const,
     byProtocolRunId: (protocolRunId: string) =>
       [...queryKeys.washoutPeriods.all, 'protocolRun', protocolRunId] as const,
+    active: (protocolRunId: string) =>
+      [...queryKeys.washoutPeriods.all, 'active', protocolRunId] as const,
   },
 
   /**
